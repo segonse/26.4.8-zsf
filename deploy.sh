@@ -26,11 +26,28 @@ else
     echo "[更新] 完成。"
 fi
 
+echo "[依赖] 正在安装 Node.js 依赖..."
+cd "$DEPLOY_DIR"
+npm install --production
+
+echo "[进程] 正在重启 Node.js 服务..."
+if pm2 list | grep -q "product-credential-site"; then
+    pm2 reload ecosystem.config.js --update-env
+else
+    pm2 start ecosystem.config.js
+fi
+pm2 save
+
 echo "[权限] 正在设置文件权限..."
 sudo chown -R www-data:www-data "$DEPLOY_DIR"
 sudo chmod -R 755 "$DEPLOY_DIR"
+# 恢复 Node.js 进程用户的写权限（用于 data/ 目录）
+sudo chown -R "$(whoami):$(whoami)" "$DEPLOY_DIR/data"
+sudo chown -R "$(whoami):$(whoami)" "$DEPLOY_DIR/images"
+sudo chown -R "$(whoami):$(whoami)" "$DEPLOY_DIR/certificates"
 
 echo "==============================="
 echo "  部署完成！"
 echo "  站点目录：$DEPLOY_DIR"
+echo "  服务端口：3000（由 Nginx 反代）"
 echo "==============================="

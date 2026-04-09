@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= product ? '编辑产品 — ' + product.model : '新增产品' %></title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 min-h-screen">
+
+  <header class="bg-white border-b sticky top-0 z-10">
+    <div class="max-w-2xl mx-auto px-4 py-3 flex items-center gap-3">
+      <a href="/admin" class="text-gray-400 hover:text-gray-600 text-sm">← 返回</a>
+      <h1 class="text-sm font-semibold text-gray-800">
+        <%= product ? '编辑产品 — ' + product.model : '新增产品' %>
+      </h1>
+    </div>
+  </header>
+
+  <main class="max-w-2xl mx-auto px-4 py-6">
+    <% if (error) { %>
+    <div class="mb-4 bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3 rounded-xl">
+      <%= error %>
+    </div>
+    <% } %>
+
+    <form method="POST" action="<%= action %>" enctype="multipart/form-data" class="space-y-6">
+
+      <!-- ── 基本信息 ─────────────────────────────────────── -->
+      <section class="bg-white rounded-2xl shadow-sm p-5 space-y-4">
+        <h2 class="text-sm font-semibold text-gray-700 border-b pb-2">基本信息</h2>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs text-gray-500 mb-1">产品型号 <span class="text-red-400">*</span></label>
+            <input type="text" name="model" required
+                   value="<%= product ? product.model : '' %>"
+                   <%= product ? 'readonly class="w-full border border-gray-200 bg-gray-50 rounded-lg px-3 py-2 text-sm text-gray-500"' : 'class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"' %>
+                   placeholder="如 FC789-1">
+          </div>
+          <div>
+            <label class="block text-xs text-gray-500 mb-1">产品图片</label>
+            <input type="file" name="productImage" accept="image/*"
+                   class="w-full text-sm text-gray-500 file:mr-2 file:py-1 file:px-3 file:rounded file:border-0 file:text-xs file:bg-blue-50 file:text-blue-600 hover:file:bg-blue-100">
+            <% if (product && product.image) { %>
+            <p class="text-xs text-gray-400 mt-1">当前：<%= product.image %></p>
+            <% } %>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs text-gray-500 mb-1">产品名称（中文）</label>
+            <input type="text" name="name"
+                   value="<%= product ? product.name : '' %>"
+                   class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+                   placeholder="毛发修剪器">
+          </div>
+          <div>
+            <label class="block text-xs text-gray-500 mb-1">Product Name (English)</label>
+            <input type="text" name="nameEn"
+                   value="<%= product ? product.nameEn : '' %>"
+                   class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+                   placeholder="Hair Clipper">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs text-gray-500 mb-1">公司名称（中文）</label>
+            <input type="text" name="company"
+                   value="<%= product ? product.company : '' %>"
+                   class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+                   placeholder="温州鸿业健身器材有限公司">
+          </div>
+          <div>
+            <label class="block text-xs text-gray-500 mb-1">Company Name (English)</label>
+            <input type="text" name="companyEn"
+                   value="<%= product ? product.companyEn : '' %>"
+                   class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+                   placeholder="Wenzhou Hongye Fitness Equipment Co., Ltd.">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs text-gray-500 mb-1">地址（中文）</label>
+            <input type="text" name="address"
+                   value="<%= product ? product.address : '' %>"
+                   class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300">
+          </div>
+          <div>
+            <label class="block text-xs text-gray-500 mb-1">Address (English)</label>
+            <input type="text" name="addressEn"
+                   value="<%= product ? product.addressEn : '' %>"
+                   class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300">
+          </div>
+        </div>
+      </section>
+
+      <!-- ── 产品参数 ─────────────────────────────────────── -->
+      <section class="bg-white rounded-2xl shadow-sm p-5 space-y-4">
+        <h2 class="text-sm font-semibold text-gray-700 border-b pb-2">产品参数</h2>
+
+        <div class="grid grid-cols-3 gap-3">
+          <div>
+            <label class="block text-xs text-gray-500 mb-1">电池容量</label>
+            <input type="text" name="params.battery"
+                   value="<%= product ? product.params.battery : '' %>"
+                   class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+                   placeholder="1200 mAh">
+          </div>
+          <div>
+            <label class="block text-xs text-gray-500 mb-1">最大功率</label>
+            <input type="text" name="params.power"
+                   value="<%= product ? product.params.power : '' %>"
+                   class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+                   placeholder="5 W">
+          </div>
+          <div>
+            <label class="block text-xs text-gray-500 mb-1">电机转速</label>
+            <input type="text" name="params.speed"
+                   value="<%= product ? product.params.speed : '' %>"
+                   class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+                   placeholder="6000 RPM">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs text-gray-500 mb-1">刀片材质（中文）</label>
+            <input type="text" name="params.blade"
+                   value="<%= product ? product.params.blade : '' %>"
+                   class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+                   placeholder="3铬13 不锈铁">
+          </div>
+          <div>
+            <label class="block text-xs text-gray-500 mb-1">Blade Material (EN)</label>
+            <input type="text" name="params.bladeEn"
+                   value="<%= product ? product.params.bladeEn : '' %>"
+                   class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+                   placeholder="3Cr13 Stainless Steel">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-3 gap-3">
+          <div>
+            <label class="block text-xs text-gray-500 mb-1">充电接口</label>
+            <input type="text" name="params.port"
+                   value="<%= product ? product.params.port : '' %>"
+                   class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+                   placeholder="Type-C">
+          </div>
+          <div>
+            <label class="block text-xs text-gray-500 mb-1">充电时长</label>
+            <input type="text" name="params.chargingTime"
+                   value="<%= product ? product.params.chargingTime : '' %>"
+                   class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+                   placeholder="（待确认）">
+          </div>
+          <div>
+            <label class="block text-xs text-gray-500 mb-1">生产日期</label>
+            <input type="text" name="params.productionDate"
+                   value="<%= product ? product.params.productionDate : '' %>"
+                   class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+                   placeholder="（待补充）">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-3 gap-3">
+          <div>
+            <label class="block text-xs text-gray-500 mb-1">产品重量</label>
+            <input type="text" name="params.weight"
+                   value="<%= product ? product.params.weight : '' %>"
+                   class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+                   placeholder="141.2 g">
+          </div>
+          <div>
+            <label class="block text-xs text-gray-500 mb-1">产品尺寸</label>
+            <input type="text" name="params.dimensions"
+                   value="<%= product ? product.params.dimensions : '' %>"
+                   class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+                   placeholder="4.5×3×15">
+          </div>
+          <div>
+            <label class="block text-xs text-gray-500 mb-1">尺寸单位</label>
+            <input type="text" name="params.dimensionsUnit"
+                   value="<%= product ? product.params.dimensionsUnit : '' %>"
+                   class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+                   placeholder="cm 或 mm">
+          </div>
+        </div>
+      </section>
+
+      <!-- ── 包装参数 ─────────────────────────────────────── -->
+      <section class="bg-white rounded-2xl shadow-sm p-5 space-y-4">
+        <h2 class="text-sm font-semibold text-gray-700 border-b pb-2">包装参数</h2>
+        <div class="grid grid-cols-3 gap-3">
+          <div>
+            <label class="block text-xs text-gray-500 mb-1">包装尺寸</label>
+            <input type="text" name="pkg.size"
+                   value="<%= product ? product.pkg.size : '' %>"
+                   class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+                   placeholder="12.8×52.5×20 cm">
+          </div>
+          <div>
+            <label class="block text-xs text-gray-500 mb-1">装箱数量（中）</label>
+            <input type="text" name="pkg.qty"
+                   value="<%= product ? product.pkg.qty : '' %>"
+                   class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+                   placeholder="80 台/箱">
+          </div>
+          <div>
+            <label class="block text-xs text-gray-500 mb-1">Carton Qty (EN)</label>
+            <input type="text" name="pkg.qtyEn"
+                   value="<%= product ? product.pkg.qtyEn : '' %>"
+                   class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+                   placeholder="80 pcs/ctn">
+          </div>
+          <div class="col-span-3">
+            <label class="block text-xs text-gray-500 mb-1">装箱尺寸</label>
+            <input type="text" name="pkg.carton"
+                   value="<%= product ? product.pkg.carton : '' %>"
+                   class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+                   placeholder="55×41.5×53.5 cm">
+          </div>
+        </div>
+      </section>
+
+      <!-- ── 专利信息 ─────────────────────────────────────── -->
+      <section class="bg-white rounded-2xl shadow-sm p-5 space-y-4">
+        <h2 class="text-sm font-semibold text-gray-700 border-b pb-2">专利信息</h2>
+
+        <div class="grid grid-cols-3 gap-3">
+          <div>
+            <label class="block text-xs text-gray-500 mb-1">专利号</label>
+            <input type="text" name="patent.no"
+                   value="<%= product ? product.patent.no : '' %>"
+                   class="w-full border rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-300"
+                   placeholder="ZL 2025 3 0594617.X">
+          </div>
+          <div>
+            <label class="block text-xs text-gray-500 mb-1">授权公告号</label>
+            <input type="text" name="patent.pubNo"
+                   value="<%= product ? product.patent.pubNo : '' %>"
+                   class="w-full border rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-300"
+                   placeholder="CN 309606064 S">
+          </div>
+          <div>
+            <label class="block text-xs text-gray-500 mb-1">专利证书号（中）</label>
+            <input type="text" name="patent.certNo"
+                   value="<%= product ? product.patent.certNo : '' %>"
+                   class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+                   placeholder="第 9621776 号">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs text-gray-500 mb-1">Certificate No. (EN)</label>
+            <input type="text" name="patent.certNoEn"
+                   value="<%= product ? product.patent.certNoEn : '' %>"
+                   class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+                   placeholder="No. 9621776">
+          </div>
+          <div>
+            <label class="block text-xs text-gray-500 mb-1">专利权人</label>
+            <input type="text" name="patent.owner"
+                   value="<%= product ? product.patent.owner : '' %>"
+                   class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+                   placeholder="温州鸿业健身器材有限公司">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs text-gray-500 mb-1">专利名称（中文）</label>
+            <input type="text" name="patent.name"
+                   value="<%= product ? product.patent.name : '' %>"
+                   class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+                   placeholder="毛发修剪器（外观设计）">
+          </div>
+          <div>
+            <label class="block text-xs text-gray-500 mb-1">Patent Name (EN)</label>
+            <input type="text" name="patent.nameEn"
+                   value="<%= product ? product.patent.nameEn : '' %>"
+                   class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+                   placeholder="Hair Clipper (Industrial Design)">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-3 gap-3">
+          <div>
+            <label class="block text-xs text-gray-500 mb-1">设计人</label>
+            <input type="text" name="patent.designer"
+                   value="<%= product ? product.patent.designer : '' %>"
+                   class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+                   placeholder="蔡盈盈">
+          </div>
+          <div>
+            <label class="block text-xs text-gray-500 mb-1">申请日</label>
+            <input type="text" name="patent.applyDate"
+                   value="<%= product ? product.patent.applyDate : '' %>"
+                   class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+                   placeholder="2025-10-10">
+          </div>
+          <div>
+            <label class="block text-xs text-gray-500 mb-1">授权公告日</label>
+            <input type="text" name="patent.pubDate"
+                   value="<%= product ? product.patent.pubDate : '' %>"
+                   class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+                   placeholder="2025-11-14">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-3 gap-3">
+          <div>
+            <label class="block text-xs text-gray-500 mb-1">发证机构（中）</label>
+            <input type="text" name="patent.issuer"
+                   value="<%= product ? product.patent.issuer : '' %>"
+                   class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+                   placeholder="国家知识产权局">
+          </div>
+          <div class="col-span-2">
+            <label class="block text-xs text-gray-500 mb-1">Issuing Authority (EN)</label>
+            <input type="text" name="patent.issuerEn"
+                   value="<%= product ? product.patent.issuerEn : '' %>"
+                   class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+                   placeholder="China National Intellectual Property Administration">
+          </div>
+        </div>
+
+        <div class="w-48">
+          <label class="block text-xs text-gray-500 mb-1">评价报告提交日</label>
+          <input type="text" name="patent.evalDate"
+                 value="<%= product ? product.patent.evalDate : '' %>"
+                 class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+                 placeholder="2025-12-19">
+        </div>
+      </section>
+
+      <!-- ── 证书附件 ─────────────────────────────────────── -->
+      <section class="bg-white rounded-2xl shadow-sm p-5 space-y-4">
+        <h2 class="text-sm font-semibold text-gray-700 border-b pb-2">证书附件</h2>
+        <p class="text-xs text-gray-400">每行为一个证书，填写名称后可上传 PDF 和缩略图。</p>
+
+        <div id="cert-list" class="space-y-4">
+          <% const certs = (product && product.certificates) ? product.certificates : []; %>
+          <% certs.forEach(function(cert, i) { %>
+          <div class="cert-item border rounded-xl p-4 space-y-3 relative">
+            <button type="button" onclick="removeCert(this)"
+                    class="absolute top-3 right-3 text-xs text-red-400 hover:text-red-600">✕</button>
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs text-gray-500 mb-1">证书名称（中文）</label>
+                <input type="text" name="certs[<%= i %>][nameZh]"
+                       value="<%= cert.nameZh %>"
+                       class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300">
+              </div>
+              <div>
+                <label class="block text-xs text-gray-500 mb-1">Certificate Name (EN)</label>
+                <input type="text" name="certs[<%= i %>][nameEn]"
+                       value="<%= cert.nameEn %>"
+                       class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300">
+              </div>
+            </div>
+            <div class="grid grid-cols-3 gap-3">
+              <div>
+                <label class="block text-xs text-gray-500 mb-1">日期</label>
+                <input type="text" name="certs[<%= i %>][date]"
+                       value="<%= cert.date %>"
+                       class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+                       placeholder="2025-11-14">
+              </div>
+              <div>
+                <label class="block text-xs text-gray-500 mb-1">PDF 文件</label>
+                <input type="file" name="certFiles" accept=".pdf"
+                       class="w-full text-xs text-gray-500 file:mr-1 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:bg-blue-50 file:text-blue-600">
+                <% if (cert.file) { %><p class="text-xs text-gray-400 mt-0.5 truncate"><%= cert.file %></p><% } %>
+              </div>
+              <div>
+                <label class="block text-xs text-gray-500 mb-1">缩略图</label>
+                <input type="file" name="certThumbs" accept="image/*"
+                       class="w-full text-xs text-gray-500 file:mr-1 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:bg-blue-50 file:text-blue-600">
+                <% if (cert.thumb) { %><p class="text-xs text-gray-400 mt-0.5 truncate"><%= cert.thumb %></p><% } %>
+              </div>
+            </div>
+            <input type="hidden" name="certs[<%= i %>][file]" value="<%= cert.file %>">
+            <input type="hidden" name="certs[<%= i %>][thumb]" value="<%= cert.thumb %>">
+          </div>
+          <% }); %>
+        </div>
+
+        <input type="hidden" id="cert-count" name="certCount" value="<%= certs.length %>">
+
+        <button type="button" onclick="addCert()"
+                class="text-xs border border-dashed border-gray-300 text-gray-500 hover:border-blue-400 hover:text-blue-500 w-full py-2 rounded-xl transition-colors">
+          + 添加证书
+        </button>
+      </section>
+
+      <!-- ── 提交按钮 ─────────────────────────────────────── -->
+      <div class="flex gap-3">
+        <button type="submit"
+                class="flex-1 bg-blue-500 text-white text-sm font-medium py-3 rounded-xl hover:bg-blue-600 transition-colors">
+          保存
+        </button>
+        <a href="/admin"
+           class="px-6 py-3 border border-gray-300 text-gray-500 text-sm rounded-xl hover:bg-gray-50 transition-colors">
+          取消
+        </a>
+      </div>
+
+    </form>
+  </main>
+
+  <script>
+    let certCount = parseInt(document.getElementById('cert-count').value, 10);
+
+    function updateCertCount() {
+      document.getElementById('cert-count').value = certCount;
+    }
+
+    function addCert() {
+      const i = certCount;
+      const div = document.createElement('div');
+      div.className = 'cert-item border rounded-xl p-4 space-y-3 relative';
+      div.innerHTML = `
+        <button type="button" onclick="removeCert(this)"
+                class="absolute top-3 right-3 text-xs text-red-400 hover:text-red-600">✕</button>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs text-gray-500 mb-1">证书名称（中文）</label>
+            <input type="text" name="certs[${i}][nameZh]"
+                   class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300">
+          </div>
+          <div>
+            <label class="block text-xs text-gray-500 mb-1">Certificate Name (EN)</label>
+            <input type="text" name="certs[${i}][nameEn]"
+                   class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300">
+          </div>
+        </div>
+        <div class="grid grid-cols-3 gap-3">
+          <div>
+            <label class="block text-xs text-gray-500 mb-1">日期</label>
+            <input type="text" name="certs[${i}][date]"
+                   class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+                   placeholder="2025-11-14">
+          </div>
+          <div>
+            <label class="block text-xs text-gray-500 mb-1">PDF 文件</label>
+            <input type="file" name="certFiles" accept=".pdf"
+                   class="w-full text-xs text-gray-500 file:mr-1 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:bg-blue-50 file:text-blue-600">
+          </div>
+          <div>
+            <label class="block text-xs text-gray-500 mb-1">缩略图</label>
+            <input type="file" name="certThumbs" accept="image/*"
+                   class="w-full text-xs text-gray-500 file:mr-1 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:bg-blue-50 file:text-blue-600">
+          </div>
+        </div>
+        <input type="hidden" name="certs[${i}][file]" value="">
+        <input type="hidden" name="certs[${i}][thumb]" value="">
+      `;
+      document.getElementById('cert-list').appendChild(div);
+      certCount++;
+      updateCertCount();
+    }
+
+    function removeCert(btn) {
+      btn.closest('.cert-item').remove();
+      // 重新编号 cert-items 中的 name 属性
+      document.querySelectorAll('#cert-list .cert-item').forEach((item, idx) => {
+        item.querySelectorAll('[name]').forEach(el => {
+          el.name = el.name.replace(/certs\[\d+\]/, `certs[${idx}]`);
+        });
+      });
+      certCount = document.querySelectorAll('#cert-list .cert-item').length;
+      updateCertCount();
+    }
+  </script>
+</body>
+</html>

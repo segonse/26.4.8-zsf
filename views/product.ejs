@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= product.model %> <%= product.name %> - 产品背书资料</title>
+  <meta name="description" content="<%= product.company %> <%= product.model %> <%= product.name %>产品背书资料，包含专利证书、核心参数等信息。">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body class="bg-gray-50 min-h-screen overflow-x-hidden">
+
+  <!-- 顶部标识栏 -->
+  <header class="bg-white border-b sticky top-0 z-10">
+    <div class="max-w-lg mx-auto px-4 py-3 flex items-center justify-between">
+      <h1 class="text-sm font-semibold text-gray-800" data-i18n="header.title">产品背书资料</h1>
+      <div class="flex items-center gap-2">
+        <button onclick="switchLang('zh')" id="btn-zh" class="text-xs px-2 py-0.5 rounded-full border border-gray-300 text-gray-500 hover:bg-gray-50 transition-colors">中文</button>
+        <button onclick="switchLang('en')" id="btn-en" class="text-xs px-2 py-0.5 rounded-full border border-gray-300 text-gray-500 hover:bg-gray-50 transition-colors">EN</button>
+        <span class="text-xs text-gray-400 ml-1"><%= product.model %></span>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-lg mx-auto px-4 py-6 space-y-6">
+
+    <!-- 产品首屏展示 -->
+    <section class="bg-white rounded-2xl overflow-hidden shadow-sm">
+      <div class="bg-gradient-to-br from-slate-100 to-slate-200 h-64 overflow-hidden w-full">
+        <img src="/<%= product.image %>"
+             alt="<%= product.model %> <%= product.name %>"
+             class="w-full h-full object-cover block"
+             onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+        <div style="display:none" class="flex-col items-center text-gray-300">
+          <svg class="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1"
+                  d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+          </svg>
+          <p class="text-xs mt-2" data-i18n="product.imgPending">产品图片待上传</p>
+        </div>
+      </div>
+      <div class="p-5">
+        <h2 class="text-lg font-bold text-gray-900" data-i18n="product.name"><%= product.name %></h2>
+        <p class="text-sm text-gray-500 mt-1" data-i18n="product.subtitle">型号：<%= product.model %> · <%= product.company %></p>
+      </div>
+    </section>
+
+    <!-- 核心参数 -->
+    <section class="bg-white rounded-2xl shadow-sm p-5">
+      <h3 class="text-base font-semibold text-gray-800 mb-4 flex items-center gap-2">
+        <span class="w-1 h-4 bg-blue-500 rounded-full inline-block"></span>
+        <span data-i18n="params.title">核心参数</span>
+      </h3>
+      <div class="grid grid-cols-2 gap-3">
+        <div class="bg-gray-50 rounded-xl p-3">
+          <p class="text-xs text-gray-400" data-i18n="params.battery">电池容量</p>
+          <p class="text-sm font-semibold mt-1"><%= product.params.battery || '—' %></p>
+        </div>
+        <div class="bg-gray-50 rounded-xl p-3">
+          <p class="text-xs text-gray-400" data-i18n="params.power">最大功率</p>
+          <p class="text-sm font-semibold mt-1"><%= product.params.power || '—' %></p>
+        </div>
+        <div class="bg-gray-50 rounded-xl p-3">
+          <p class="text-xs text-gray-400" data-i18n="params.speed">电机转速</p>
+          <p class="text-sm font-semibold mt-1"><%= product.params.speed || '—' %></p>
+        </div>
+        <div class="bg-gray-50 rounded-xl p-3">
+          <p class="text-xs text-gray-400" data-i18n="params.blade">刀片材质</p>
+          <p class="text-sm font-semibold mt-1" data-i18n="params.bladeVal"><%= product.params.blade || '—' %></p>
+        </div>
+        <div class="bg-gray-50 rounded-xl p-3">
+          <p class="text-xs text-gray-400" data-i18n="params.port">充电接口</p>
+          <p class="text-sm font-semibold mt-1"><%= product.params.port || '—' %></p>
+        </div>
+        <div class="bg-gray-50 rounded-xl p-3">
+          <p class="text-xs text-gray-400" data-i18n="params.charging">充电时长</p>
+          <p class="text-sm font-semibold mt-1 <%= product.params.chargingTime ? '' : 'text-orange-500' %>" data-i18n="params.chargingVal"><%= product.params.chargingTime || '待确认' %></p>
+        </div>
+        <div class="bg-gray-50 rounded-xl p-3">
+          <p class="text-xs text-gray-400" data-i18n="params.date">生产日期</p>
+          <p class="text-sm font-semibold mt-1 <%= product.params.productionDate ? '' : 'text-orange-500' %>" data-i18n="params.dateVal"><%= product.params.productionDate || '待补充' %></p>
+        </div>
+        <div class="bg-gray-50 rounded-xl p-3">
+          <p class="text-xs text-gray-400" data-i18n="params.weight">产品重量</p>
+          <p class="text-sm font-semibold mt-1"><%= product.params.weight || '—' %></p>
+        </div>
+        <div class="bg-gray-50 rounded-xl p-3">
+          <p class="text-xs text-gray-400" data-i18n="params.size">产品尺寸</p>
+          <p class="text-sm font-semibold mt-1"><%= product.params.dimensions || '—' %><% if (!product.params.dimensionsUnit) { %> <span class="text-xs font-normal text-orange-400" data-i18n="params.sizeUnit">单位待确认</span><% } else { %> <span class="text-xs font-normal text-gray-400"><%= product.params.dimensionsUnit %></span><% } %></p>
+        </div>
+      </div>
+      <!-- 包装/物流参数 -->
+      <div class="mt-4 pt-4 border-t space-y-2">
+        <div class="flex justify-between text-sm">
+          <span class="text-gray-400" data-i18n="params.pkgSize">包装尺寸</span>
+          <span class="font-medium text-gray-800"><%= product.pkg.size || '—' %></span>
+        </div>
+        <div class="flex justify-between text-sm">
+          <span class="text-gray-400" data-i18n="params.pkgQty">装箱数量</span>
+          <span class="font-medium text-gray-800" data-i18n="params.pkgQtyVal"><%= product.pkg.qty || '—' %></span>
+        </div>
+        <div class="flex justify-between text-sm">
+          <span class="text-gray-400" data-i18n="params.pkgCarton">装箱尺寸</span>
+          <span class="font-medium text-gray-800"><%= product.pkg.carton || '—' %></span>
+        </div>
+      </div>
+    </section>
+
+    <!-- 专利信息 -->
+    <section class="bg-white rounded-2xl shadow-sm p-5">
+      <h3 class="text-base font-semibold text-gray-800 mb-4 flex items-center gap-2">
+        <span class="w-1 h-4 bg-blue-500 rounded-full inline-block"></span>
+        <span data-i18n="patent.title">专利信息</span>
+      </h3>
+      <dl class="space-y-3 text-sm">
+        <div class="flex justify-between">
+          <dt class="text-gray-400" data-i18n="patent.no">专利号</dt>
+          <dd class="font-mono font-medium text-gray-800 text-right"><%= product.patent.no %></dd>
+        </div>
+        <div class="flex justify-between">
+          <dt class="text-gray-400" data-i18n="patent.name">专利名称</dt>
+          <dd class="font-medium text-gray-800 text-right" data-i18n="patent.nameVal"><%= product.patent.name %></dd>
+        </div>
+        <div class="flex justify-between">
+          <dt class="text-gray-400" data-i18n="patent.pub">授权公告号</dt>
+          <dd class="font-mono font-medium text-gray-800 text-right"><%= product.patent.pubNo %></dd>
+        </div>
+        <div class="flex justify-between">
+          <dt class="text-gray-400" data-i18n="patent.certNo">专利证书号</dt>
+          <dd class="font-medium text-gray-800 text-right" data-i18n="patent.certNoVal"><%= product.patent.certNo %></dd>
+        </div>
+        <div class="flex justify-between">
+          <dt class="text-gray-400" data-i18n="patent.owner">专利权人</dt>
+          <dd class="font-medium text-gray-800 text-right" data-i18n="patent.ownerVal"><%= product.patent.owner %></dd>
+        </div>
+        <div class="flex justify-between">
+          <dt class="text-gray-400" data-i18n="patent.designer">设计人</dt>
+          <dd class="font-medium text-gray-800"><%= product.patent.designer %></dd>
+        </div>
+        <div class="flex justify-between">
+          <dt class="text-gray-400" data-i18n="patent.apply">申请日</dt>
+          <dd class="font-medium text-gray-800"><%= product.patent.applyDate %></dd>
+        </div>
+        <div class="flex justify-between">
+          <dt class="text-gray-400" data-i18n="patent.announce">授权公告日</dt>
+          <dd class="font-medium text-gray-800"><%= product.patent.pubDate %></dd>
+        </div>
+        <div class="flex justify-between">
+          <dt class="text-gray-400" data-i18n="patent.issuer">发证机构</dt>
+          <dd class="font-medium text-gray-800" data-i18n="patent.issuerVal"><%= product.patent.issuer %></dd>
+        </div>
+        <% if (product.patent.evalDate) { %>
+        <div class="flex justify-between">
+          <dt class="text-gray-400" data-i18n="patent.evalDate">评价报告提交日</dt>
+          <dd class="font-medium text-gray-800"><%= product.patent.evalDate %></dd>
+        </div>
+        <% } %>
+      </dl>
+    </section>
+
+    <!-- 证书附件 -->
+    <% if (product.certificates && product.certificates.length > 0) { %>
+    <section class="bg-white rounded-2xl shadow-sm p-5">
+      <h3 class="text-base font-semibold text-gray-800 mb-4 flex items-center gap-2">
+        <span class="w-1 h-4 bg-blue-500 rounded-full inline-block"></span>
+        <span data-i18n="attach.title">证书附件</span>
+      </h3>
+      <div class="space-y-3">
+        <% product.certificates.forEach(function(cert) { %>
+        <a href="/<%= cert.file %>" target="_blank"
+           class="flex items-center gap-4 p-3 rounded-xl border hover:bg-gray-50 active:bg-gray-100 transition-colors">
+          <img src="/<%= cert.thumb %>" alt="<%= cert.nameZh %>"
+               class="w-12 h-16 object-cover rounded border bg-gray-100 shrink-0"
+               onerror="this.style.display='none'; this.nextElementSibling.classList.remove('hidden')">
+          <div class="hidden w-12 h-16 bg-red-50 rounded border flex items-center justify-center shrink-0">
+            <svg class="w-6 h-6 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+            </svg>
+          </div>
+          <div class="flex-1 min-w-0">
+            <p class="text-sm font-medium text-gray-800 truncate"
+               data-cert-zh="<%= cert.nameZh %>" data-cert-en="<%= cert.nameEn %>"><%= cert.nameZh %></p>
+            <p class="text-xs text-gray-400 mt-0.5">PDF · <%= cert.date %></p>
+          </div>
+          <span class="text-xs text-blue-500 whitespace-nowrap shrink-0" data-i18n="attach.view">查看 →</span>
+        </a>
+        <% }); %>
+      </div>
+    </section>
+    <% } %>
+
+    <!-- 页脚 -->
+    <footer class="text-center text-xs text-gray-300 pt-2 pb-8 space-y-1">
+      <p data-i18n="footer.company"><%= product.company %></p>
+      <p data-i18n="footer.address"><%= product.address %></p>
+    </footer>
+
+  </main>
+
+  <script>
+    const PRODUCT = <%- JSON.stringify(product) %>;
+
+    const i18n = {
+      zh: {
+        'header.title': '产品背书资料',
+        'product.name': PRODUCT.name,
+        'product.subtitle': '型号：' + PRODUCT.model + ' · ' + PRODUCT.company,
+        'product.imgPending': '产品图片待上传',
+        'params.title': '核心参数',
+        'params.battery': '电池容量',
+        'params.power': '最大功率',
+        'params.speed': '电机转速',
+        'params.blade': '刀片材质',
+        'params.bladeVal': PRODUCT.params.blade || '—',
+        'params.port': '充电接口',
+        'params.charging': '充电时长',
+        'params.chargingVal': PRODUCT.params.chargingTime || '待确认',
+        'params.date': '生产日期',
+        'params.dateVal': PRODUCT.params.productionDate || '待补充',
+        'params.weight': '产品重量',
+        'params.size': '产品尺寸',
+        'params.sizeUnit': PRODUCT.params.dimensionsUnit || '单位待确认',
+        'params.pkgSize': '包装尺寸',
+        'params.pkgQty': '装箱数量',
+        'params.pkgQtyVal': PRODUCT.pkg.qty || '—',
+        'params.pkgCarton': '装箱尺寸',
+        'patent.title': '专利信息',
+        'patent.no': '专利号',
+        'patent.name': '专利名称',
+        'patent.nameVal': PRODUCT.patent.name,
+        'patent.pub': '授权公告号',
+        'patent.certNo': '专利证书号',
+        'patent.certNoVal': PRODUCT.patent.certNo,
+        'patent.owner': '专利权人',
+        'patent.ownerVal': PRODUCT.patent.owner,
+        'patent.designer': '设计人',
+        'patent.apply': '申请日',
+        'patent.announce': '授权公告日',
+        'patent.issuer': '发证机构',
+        'patent.issuerVal': PRODUCT.patent.issuer,
+        'patent.evalDate': '评价报告提交日',
+        'attach.title': '证书附件',
+        'attach.view': '查看 →',
+        'footer.company': PRODUCT.company,
+        'footer.address': PRODUCT.address,
+      },
+      en: {
+        'header.title': 'Product Credentials',
+        'product.name': PRODUCT.nameEn,
+        'product.subtitle': 'Model: ' + PRODUCT.model + ' · ' + PRODUCT.companyEn,
+        'product.imgPending': 'Product image coming soon',
+        'params.title': 'Key Specifications',
+        'params.battery': 'Battery',
+        'params.power': 'Max Power',
+        'params.speed': 'Motor Speed',
+        'params.blade': 'Blade Material',
+        'params.bladeVal': PRODUCT.params.bladeEn || PRODUCT.params.blade || '—',
+        'params.port': 'Charging Port',
+        'params.charging': 'Charging Time',
+        'params.chargingVal': PRODUCT.params.chargingTime || 'TBD',
+        'params.date': 'Production Date',
+        'params.dateVal': PRODUCT.params.productionDate || 'TBD',
+        'params.weight': 'Weight',
+        'params.size': 'Dimensions',
+        'params.sizeUnit': PRODUCT.params.dimensionsUnit || 'unit TBD',
+        'params.pkgSize': 'Package Size',
+        'params.pkgQty': 'Carton Qty',
+        'params.pkgQtyVal': PRODUCT.pkg.qtyEn || PRODUCT.pkg.qty || '—',
+        'params.pkgCarton': 'Carton Size',
+        'patent.title': 'Patent Information',
+        'patent.no': 'Patent No.',
+        'patent.name': 'Patent Name',
+        'patent.nameVal': PRODUCT.patent.nameEn || PRODUCT.patent.name,
+        'patent.pub': 'Publication No.',
+        'patent.certNo': 'Certificate No.',
+        'patent.certNoVal': PRODUCT.patent.certNoEn || PRODUCT.patent.certNo,
+        'patent.owner': 'Patentee',
+        'patent.ownerVal': PRODUCT.companyEn,
+        'patent.designer': 'Designer',
+        'patent.apply': 'Application Date',
+        'patent.announce': 'Publication Date',
+        'patent.issuer': 'Issuing Authority',
+        'patent.issuerVal': PRODUCT.patent.issuerEn || PRODUCT.patent.issuer,
+        'patent.evalDate': 'Evaluation Report Date',
+        'attach.title': 'Certificate Attachments',
+        'attach.view': 'View →',
+        'footer.company': PRODUCT.companyEn,
+        'footer.address': PRODUCT.addressEn,
+      }
+    };
+
+    function switchLang(lang) {
+      localStorage.setItem('lang', lang);
+      document.documentElement.lang = lang === 'zh' ? 'zh-CN' : 'en';
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (i18n[lang][key] !== undefined) el.textContent = i18n[lang][key];
+      });
+      document.querySelectorAll('[data-cert-zh]').forEach(el => {
+        el.textContent = lang === 'zh'
+          ? el.getAttribute('data-cert-zh')
+          : (el.getAttribute('data-cert-en') || el.getAttribute('data-cert-zh'));
+      });
+      const isZh = lang === 'zh';
+      const btnZh = document.getElementById('btn-zh');
+      const btnEn = document.getElementById('btn-en');
+      btnZh.classList.toggle('font-semibold', isZh);
+      btnZh.classList.toggle('border-blue-400', isZh);
+      btnZh.classList.toggle('text-blue-500', isZh);
+      btnEn.classList.toggle('font-semibold', !isZh);
+      btnEn.classList.toggle('border-blue-400', !isZh);
+      btnEn.classList.toggle('text-blue-500', !isZh);
+    }
+
+    (function () {
+      const urlLang = new URLSearchParams(location.search).get('lang');
+      const savedLang = localStorage.getItem('lang');
+      switchLang(urlLang || savedLang || 'zh');
+    })();
+  </script>
+</body>
+</html>

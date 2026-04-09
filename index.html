@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>产品背书资料查询</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 min-h-screen flex items-center justify-center p-4">
+
+  <div class="w-full max-w-sm bg-white rounded-2xl shadow-sm p-6 space-y-4 text-center">
+    <div class="mx-auto w-12 h-12 bg-blue-50 rounded-full flex items-center justify-center">
+      <svg class="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+      </svg>
+    </div>
+    <div>
+      <h1 class="text-lg font-bold text-gray-800">产品背书资料查询</h1>
+      <p class="text-sm text-gray-400 mt-1">输入产品型号查看背书资料</p>
+    </div>
+    <div>
+      <input id="model-input" type="text" placeholder="例如 FC789-1"
+             class="w-full border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300 text-center tracking-widest">
+    </div>
+    <button onclick="goToProduct()"
+            class="w-full bg-blue-500 text-white text-sm font-medium rounded-lg py-2.5 hover:bg-blue-600 active:bg-blue-700 transition-colors">
+      查询
+    </button>
+    <p class="text-xs text-gray-300">或用手机 NFC 碰触产品标签直接查看</p>
+  </div>
+
+  <script>
+    function goToProduct() {
+      var model = document.getElementById('model-input').value.trim();
+      if (model) {
+        window.location.href = model + '.html';
+      }
+    }
+    document.getElementById('model-input').addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') goToProduct();
+    });
+    // 自动聚焦输入框
+    document.getElementById('model-input').focus();
+  </script>
+</body>
+</html>

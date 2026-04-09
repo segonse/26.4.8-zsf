@@ -1,0 +1,30 @@
+/* css/style.css */
+
+/* 证书缩略图加载失败时的占位样式 */
+img[src=""] {
+  background-color: #f3f4f6;
+}
+
+/* 打印优化：页面内容可打印 */
+@media print {
+  header { display: none; }
+  main { padding: 0; }
+  section {
+    break-inside: avoid;
+    box-shadow: none !important;
+    border: 1px solid #e5e7eb !important;
+    border-radius: 8px;
+  }
+  a[href]::after {
+    content: " (" attr(href) ")";
+    font-size: 10px;
+    color: #9ca3af;
+  }
+}
+
+/* 移动端点击态优化 */
+@media (hover: none) {
+  a:active {
+    background-color: #f9fafb;
+  }
+}

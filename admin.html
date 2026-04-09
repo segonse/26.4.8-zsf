@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>URL 管理 - 内部使用</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 min-h-screen p-4">
+
+  <div class="max-w-2xl mx-auto space-y-4">
+
+    <div>
+      <h1 class="text-lg font-bold text-gray-800">产品 URL 管理</h1>
+      <p class="text-sm text-gray-400 mt-1">复制 URL 后写入对应产品的 NFC 标签</p>
+    </div>
+
+    <!-- 域名配置 -->
+    <div class="bg-white rounded-xl shadow-sm p-4">
+      <label class="text-sm font-medium text-gray-600 block mb-1">当前域名</label>
+      <input id="domain-input" type="text" value="https://域名"
+             class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+             oninput="updateUrls()">
+      <p class="text-xs text-gray-400 mt-1">修改域名后，下方所有 URL 自动更新</p>
+    </div>
+
+    <!-- 产品 URL 列表 -->
+    <div class="bg-white rounded-xl shadow-sm divide-y" id="url-list"></div>
+
+    <!-- 使用说明 -->
+    <div class="bg-blue-50 rounded-xl p-4 text-sm text-blue-700 space-y-1">
+      <p class="font-medium">NFC 标签写入步骤：</p>
+      <ol class="list-decimal list-inside space-y-1 text-blue-600">
+        <li>确认域名已正确填写</li>
+        <li>点击对应产品的"复制"按钮</li>
+        <li>用 NFC 写入 App（如 NFC Tools）将 URL 写入标签</li>
+        <li>用手机碰标签测试是否正常跳转</li>
+      </ol>
+    </div>
+
+    <p class="text-xs text-gray-300 text-center pb-4">此页面仅供内部使用，请勿分享给客户</p>
+  </div>
+
+  <script>
+    // 产品数据：新增产品时只需在此数组追加
+    var products = [
+      { model: 'FC789-1', name: '毛发修剪器', file: 'FC789-1.html', version: 'B档展示版' }
+      // 新增产品示例：
+      // { model: 'FC789-2', name: '产品名称', file: 'FC789-2.html', version: 'B档展示版' }
+    ];
+
+    function getDomain() {
+      return document.getElementById('domain-input').value.replace(/\/$/, '');
+    }
+
+    function updateUrls() {
+      var domain = getDomain();
+      var list = document.getElementById('url-list');
+      list.innerHTML = '';
+
+      if (products.length === 0) {
+        list.innerHTML = '<div class="p-6 text-center text-sm text-gray-400">暂无产品</div>';
+        return;
+      }
+
+      products.forEach(function(p, i) {
+        var url = domain + '/' + p.file;
+        var div = document.createElement('div');
+        div.className = 'p-4';
+        div.innerHTML =
+          '<div class="flex items-start justify-between gap-4">' +
+            '<div class="min-w-0 flex-1">' +
+              '<div class="flex items-center gap-2">' +
+                '<span class="text-sm font-semibold text-gray-800">' + p.model + '</span>' +
+                '<span class="text-xs text-gray-400">' + p.name + '</span>' +
+                '<span class="text-xs bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded">' + p.version + '</span>' +
+              '</div>' +
+              '<p class="text-xs text-gray-400 mt-1.5 font-mono break-all" id="url-' + i + '">' + url + '</p>' +
+            '</div>' +
+            '<button onclick="copyUrl(' + i + ')" id="btn-' + i + '"' +
+            ' class="shrink-0 text-xs bg-blue-500 text-white px-3 py-1.5 rounded-lg hover:bg-blue-600 active:bg-blue-700 transition-colors whitespace-nowrap">' +
+            '复制</button>' +
+          '</div>';
+        list.appendChild(div);
+      });
+    }
+
+    function copyUrl(index) {
+      var url = document.getElementById('url-' + index).textContent;
+      navigator.clipboard.writeText(url).then(function() {
+        var btn = document.getElementById('btn-' + index);
+        var original = btn.textContent;
+        btn.textContent = '已复制 ✓';
+        btn.classList.remove('bg-blue-500', 'hover:bg-blue-600');
+        btn.classList.add('bg-green-500', 'hover:bg-green-600');
+        setTimeout(function() {
+          btn.textContent = original;
+          btn.classList.remove('bg-green-500', 'hover:bg-green-600');
+          btn.classList.add('bg-blue-500', 'hover:bg-blue-600');
+        }, 1500);
+      }).catch(function() {
+        // 降级：手动选中文本
+        var el = document.getElementById('url-' + index);
+        var range = document.createRange();
+        range.selectNodeContents(el);
+        window.getSelection().removeAllRanges();
+        window.getSelection().addRange(range);
+        alert('请手动复制选中的 URL');
+      });
+    }
+
+    // 初始化
+    updateUrls();
+  </script>
+</body>
+</html>

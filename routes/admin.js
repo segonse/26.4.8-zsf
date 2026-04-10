@@ -33,19 +33,42 @@ function writeData(data) {
   fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2), 'utf8');
 }
 
+function readBodyField(body, key) {
+  return body[key] || '';
+}
+
+function readCertField(body, index, key) {
+  const nested = body.certs;
+  if (Array.isArray(nested) && nested[index] && nested[index][key] !== undefined) {
+    return nested[index][key] || '';
+  }
+  if (nested && typeof nested === 'object') {
+    const row = nested[index] || nested[String(index)];
+    if (row && row[key] !== undefined) {
+      return row[key] || '';
+    }
+  }
+  return body[`certs[${index}][${key}]`] || '';
+}
+
 // ── 从 req.body 构建产品对象 ──────────────────────────────────
 function buildProduct(body, files, existing) {
-  const certCount = parseInt(body.certCount || '0', 10);
-  const certificates = [];
+  const nestedCerts = body.certs;
+  const nestedCertCount = Array.isArray(nestedCerts)
+    ? nestedCerts.length
+    : nestedCerts && typeof nestedCerts === 'object'
+      ? Object.keys(nestedCerts).length
+      : 0;
+  const certCount = Math.max(parseInt(body.certCount || '0', 10), nestedCertCount);
+  const certificates = new Array(certCount);
   for (let i = 0; i < certCount; i++) {
-    const nameZh = body[`certs[${i}][nameZh]`] || '';
-    const nameEn = body[`certs[${i}][nameEn]`] || '';
-    const date   = body[`certs[${i}][date]`] || '';
-    const file   = body[`certs[${i}][file]`] || '';
-    const thumb  = body[`certs[${i}][thumb]`] || '';
-    if (nameZh) {
-      certificates.push({ nameZh, nameEn, date, file, thumb });
-    }
+    certificates[i] = {
+      nameZh: readCertField(body, i, 'nameZh').trim(),
+      nameEn: readCertField(body, i, 'nameEn').trim(),
+      date: readCertField(body, i, 'date').trim(),
+      file: readCertField(body, i, 'file').trim(),
+      thumb: readCertField(body, i, 'thumb').trim()
+    };
   }
 
   if (files && files.productImage && files.productImage[0]) {
@@ -63,49 +86,50 @@ function buildProduct(body, files, existing) {
   }
 
   return {
-    model:      body.model || (existing && existing.model) || '',
-    name:       body.name || '',
-    nameEn:     body.nameEn || '',
-    company:    body.company || '',
-    companyEn:  body.companyEn || '',
-    address:    body.address || '',
-    addressEn:  body.addressEn || '',
-    image:      body.image || (existing && existing.image) || '',
+    model:      readBodyField(body, 'model') || (existing && existing.model) || '',
+    name:       readBodyField(body, 'name'),
+    nameEn:     readBodyField(body, 'nameEn'),
+    company:    readBodyField(body, 'company'),
+    companyEn:  readBodyField(body, 'companyEn'),
+    address:    readBodyField(body, 'address'),
+    addressEn:  readBodyField(body, 'addressEn'),
+    image:      readBodyField(body, 'image') || (existing && existing.image) || '',
     params: {
-      battery:        body['params.battery'] || '',
-      power:          body['params.power'] || '',
-      speed:          body['params.speed'] || '',
-      blade:          body['params.blade'] || '',
-      bladeEn:        body['params.bladeEn'] || '',
-      port:           body['params.port'] || '',
-      chargingTime:   body['params.chargingTime'] || '',
-      productionDate: body['params.productionDate'] || '',
-      weight:         body['params.weight'] || '',
-      dimensions:     body['params.dimensions'] || '',
-      dimensionsUnit: body['params.dimensionsUnit'] || ''
+      battery:        readBodyField(body, 'params.battery'),
+      power:          readBodyField(body, 'params.power'),
+      speed:          readBodyField(body, 'params.speed'),
+      blade:          readBodyField(body, 'params.blade'),
+      bladeEn:        readBodyField(body, 'params.bladeEn'),
+      port:           readBodyField(body, 'params.port'),
+      chargingTime:   readBodyField(body, 'params.chargingTime'),
+      productionDate: readBodyField(body, 'params.productionDate'),
+      weight:         readBodyField(body, 'params.weight'),
+      dimensions:     readBodyField(body, 'params.dimensions'),
+      dimensionsUnit: readBodyField(body, 'params.dimensionsUnit')
     },
     pkg: {
-      size:    body['pkg.size'] || '',
-      qty:     body['pkg.qty'] || '',
-      qtyEn:   body['pkg.qtyEn'] || '',
-      carton:  body['pkg.carton'] || ''
+      size:    readBodyField(body, 'pkg.size'),
+      qty:     readBodyField(body, 'pkg.qty'),
+      qtyEn:   readBodyField(body, 'pkg.qtyEn'),
+      carton:  readBodyField(body, 'pkg.carton')
     },
     patent: {
-      no:         body['patent.no'] || '',
-      pubNo:      body['patent.pubNo'] || '',
-      certNo:     body['patent.certNo'] || '',
-      certNoEn:   body['patent.certNoEn'] || '',
-      name:       body['patent.name'] || '',
-      nameEn:     body['patent.nameEn'] || '',
-      owner:      body['patent.owner'] || '',
-      designer:   body['patent.designer'] || '',
-      applyDate:  body['patent.applyDate'] || '',
-      pubDate:    body['patent.pubDate'] || '',
-      issuer:     body['patent.issuer'] || '',
-      issuerEn:   body['patent.issuerEn'] || '',
-      evalDate:   body['patent.evalDate'] || ''
+      no:         readBodyField(body, 'patent.no'),
+      pubNo:      readBodyField(body, 'patent.pubNo'),
+      certNo:     readBodyField(body, 'patent.certNo'),
+      certNoEn:   readBodyField(body, 'patent.certNoEn'),
+      name:       readBodyField(body, 'patent.name'),
+      nameEn:     readBodyField(body, 'patent.nameEn'),
+      owner:      readBodyField(body, 'patent.owner'),
+      designer:   readBodyField(body, 'patent.designer'),
+      applyDate:  readBodyField(body, 'patent.applyDate'),
+      pubDate:    readBodyField(body, 'patent.pubDate'),
+      issuer:     readBodyField(body, 'patent.issuer'),
+      issuerEn:   readBodyField(body, 'patent.issuerEn'),
+      evalDate:   readBodyField(body, 'patent.evalDate')
     },
-    certificates
+    certificates: certificates.filter(cert =>
+      cert.nameZh || cert.nameEn || cert.date || cert.file || cert.thumb)
   };
 }
 

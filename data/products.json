@@ -59,6 +59,59 @@
           "date": "2025-12-19"
         }
       ]
+    },
+    {
+      "model": "FC888-8",
+      "name": "666",
+      "nameEn": "66",
+      "company": "66",
+      "companyEn": "66",
+      "address": "66",
+      "addressEn": "66",
+      "image": "images/0b84d2b9-d781-459b-87a9-64ba86c2b7c0.png",
+      "params": {
+        "battery": "123",
+        "power": "123",
+        "speed": "123",
+        "blade": "123",
+        "bladeEn": "123",
+        "port": "123",
+        "chargingTime": "123",
+        "productionDate": "123",
+        "weight": "123",
+        "dimensions": "123",
+        "dimensionsUnit": "123"
+      },
+      "pkg": {
+        "size": "123",
+        "qty": "123",
+        "qtyEn": "123",
+        "carton": "123"
+      },
+      "patent": {
+        "no": "111",
+        "pubNo": "11",
+        "certNo": "1",
+        "certNoEn": "1",
+        "name": "1",
+        "nameEn": "1",
+        "owner": "1",
+        "designer": "",
+        "applyDate": "1",
+        "pubDate": "1",
+        "issuer": "1",
+        "issuerEn": "1",
+        "evalDate": "1"
+      },
+      "certificates": [
+        {
+          "nameZh": "可以",
+          "nameEn": "ky",
+          "date": "666",
+          "file": "certificates/Claude_Code__________________-v2.0.0.pdf",
+          "thumb": "images/0b84d2b9-d781-459b-87a9-64ba86c2b7c0.png"
+        }
+      ]
     }
   ]
 }

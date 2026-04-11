@@ -1,2 +1,4 @@
 node_modules/
 package-lock.json
+data/admin-auth.json
+server-*.log

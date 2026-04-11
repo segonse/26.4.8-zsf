@@ -1,42 +1,50 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>产品管理后台</title>
+  <title>Product Admin</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-50 min-h-screen">
 
   <header class="bg-white border-b sticky top-0 z-10">
-    <div class="max-w-3xl mx-auto px-4 py-3 flex items-center justify-between">
+    <div class="max-w-3xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
       <div>
-        <h1 class="text-sm font-semibold text-gray-800">产品管理后台</h1>
-        <p class="text-xs text-gray-400 mt-0.5">内部使用 · 请勿分享给外部人员</p>
+        <h1 id="page-title" class="text-sm font-semibold text-gray-800">Product Admin</h1>
+        <p id="page-subtitle" class="text-xs text-gray-400 mt-0.5">Internal use only</p>
       </div>
-      <a href="/admin/new"
-         class="text-xs bg-blue-500 text-white px-3 py-1.5 rounded-lg hover:bg-blue-600 transition-colors">
-        + 新增产品
-      </a>
+      <div class="flex items-center gap-2 shrink-0">
+        <button onclick="switchLang('zh')" id="btn-zh" class="text-xs px-2 py-0.5 rounded-full border border-gray-300 text-gray-500 hover:bg-gray-50 transition-colors">中文</button>
+        <button onclick="switchLang('en')" id="btn-en" class="text-xs px-2 py-0.5 rounded-full border border-gray-300 text-gray-500 hover:bg-gray-50 transition-colors">EN</button>
+        <a href="/admin/new" id="new-button"
+           class="text-xs bg-blue-500 text-white px-3 py-1.5 rounded-lg hover:bg-blue-600 transition-colors">
+          + New Product
+        </a>
+        <form method="POST" action="/logout">
+          <button id="logout-button" type="submit"
+                  class="text-xs border border-gray-300 text-gray-600 px-3 py-1.5 rounded-lg hover:bg-gray-50 transition-colors">
+            Logout
+          </button>
+        </form>
+      </div>
     </div>
   </header>
 
   <main class="max-w-3xl mx-auto px-4 py-6 space-y-6">
 
-    <!-- NFC 域名配置 -->
     <section class="bg-white rounded-2xl shadow-sm p-5">
-      <h2 class="text-sm font-semibold text-gray-700 mb-3">NFC 标签 URL</h2>
+      <h2 id="domain-title" class="text-sm font-semibold text-gray-700 mb-3">NFC Label URL</h2>
       <div class="flex gap-2 items-center">
-        <input id="domain-input" type="text" placeholder="https://你的域名"
+        <input id="domain-input" type="text" placeholder="https://your-domain"
                class="flex-1 border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300">
-        <span class="text-xs text-gray-400">修改后下方链接自动更新</span>
+        <span id="domain-hint" class="text-xs text-gray-400">The URL below updates automatically</span>
       </div>
     </section>
 
-    <!-- 产品列表 -->
     <% if (products.length === 0) { %>
-    <div class="text-center py-16 text-gray-400 text-sm">
-      暂无产品数据，点击右上角"+ 新增产品"开始录入
+    <div id="empty-state" class="text-center py-16 text-gray-400 text-sm">
+      No product data yet. Click "+ New Product" to start.
     </div>
     <% } else { %>
     <div class="space-y-4">
@@ -45,53 +53,39 @@
         <div class="flex items-start justify-between gap-4 mb-4">
           <div>
             <span class="text-base font-bold text-gray-900"><%= p.model %></span>
-            <span class="text-sm text-gray-500 ml-2"><%= p.name %></span>
-            <span class="text-xs text-gray-400 ml-1">/ <%= p.nameEn %></span>
+            <span class="text-sm text-gray-500 ml-2 product-name"
+                  data-name-zh="<%= p.name %>"
+                  data-name-en="<%= p.nameEn %>"><%= p.nameEn || p.name %></span>
+            <span class="text-xs text-gray-400 ml-1 product-name-secondary"
+                  data-name-zh="<%= p.nameEn %>"
+                  data-name-en="<%= p.name %>">/ <%= p.name %></span>
           </div>
           <div class="flex gap-2 shrink-0">
             <a href="/admin/<%= p.model %>/edit"
-               class="text-xs border border-blue-400 text-blue-500 px-3 py-1 rounded-lg hover:bg-blue-50 transition-colors">
-              编辑
+               class="edit-button text-xs border border-blue-400 text-blue-500 px-3 py-1 rounded-lg hover:bg-blue-50 transition-colors">
+              Edit
             </a>
             <form method="POST" action="/admin/products/<%= p.model %>/delete"
-                  onsubmit="return confirm('确认删除 <%= p.model %> <%= p.name %>？此操作不可恢复。')">
+                  data-model="<%= p.model %>"
+                  data-name-zh="<%= p.name %>"
+                  data-name-en="<%= p.nameEn %>"
+                  onsubmit="return confirmDelete(this)">
               <button type="submit"
-                      class="text-xs border border-red-300 text-red-400 px-3 py-1 rounded-lg hover:bg-red-50 transition-colors">
-                删除
+                      class="delete-button text-xs border border-red-300 text-red-400 px-3 py-1 rounded-lg hover:bg-red-50 transition-colors">
+                Delete
               </button>
             </form>
           </div>
         </div>
 
-        <!-- URL 列表 -->
-        <div class="space-y-2">
-          <div class="flex items-center gap-2">
-            <span class="text-xs text-gray-400 w-16 shrink-0">中文版</span>
-            <code class="flex-1 text-xs bg-gray-50 border rounded px-2 py-1 text-gray-700 truncate url-display"
-                  data-path="/<%= p.model %>"></code>
-            <button onclick="copyUrl(this)"
-                    class="text-xs bg-gray-100 hover:bg-gray-200 text-gray-600 px-2 py-1 rounded transition-colors shrink-0">
-              复制
-            </button>
-          </div>
-          <div class="flex items-center gap-2">
-            <span class="text-xs text-gray-400 w-16 shrink-0">英文版</span>
-            <code class="flex-1 text-xs bg-gray-50 border rounded px-2 py-1 text-gray-700 truncate url-display"
-                  data-path="/<%= p.model %>?lang=en"></code>
-            <button onclick="copyUrl(this)"
-                    class="text-xs bg-gray-100 hover:bg-gray-200 text-gray-600 px-2 py-1 rounded transition-colors shrink-0">
-              复制
-            </button>
-          </div>
-          <div class="flex items-center gap-2">
-            <span class="text-xs text-gray-400 w-16 shrink-0">兼容旧版</span>
-            <code class="flex-1 text-xs bg-gray-50 border rounded px-2 py-1 text-gray-500 truncate url-display"
-                  data-path="/<%= p.model %>.html"></code>
-            <button onclick="copyUrl(this)"
-                    class="text-xs bg-gray-100 hover:bg-gray-200 text-gray-600 px-2 py-1 rounded transition-colors shrink-0">
-              复制
-            </button>
-          </div>
+        <div class="flex items-center gap-2">
+          <span class="url-label text-xs text-gray-400 w-16 shrink-0">URL</span>
+          <code class="flex-1 text-xs bg-gray-50 border rounded px-2 py-1 text-gray-700 truncate url-display"
+                data-path="/<%= p.model %>"></code>
+          <button onclick="copyUrl(this)"
+                  class="copy-button text-xs bg-gray-100 hover:bg-gray-200 text-gray-600 px-2 py-1 rounded transition-colors shrink-0">
+            Copy
+          </button>
         </div>
       </div>
       <% }); %>
@@ -101,13 +95,106 @@
   </main>
 
   <script>
+    const i18n = {
+      zh: {
+        title: '产品管理后台',
+        subtitle: '内部使用',
+        newButton: '+ 新增产品',
+        domainTitle: 'NFC 标签 URL',
+        domainPlaceholder: 'https://你的域名',
+        domainHint: '下方链接会自动更新',
+        empty: '暂无产品数据，点击“+ 新增产品”开始录入',
+        edit: '编辑',
+        delete: '删除',
+        urlLabel: '链接',
+        copy: '复制',
+        copied: '已复制 ✓',
+        logout: '退出',
+        confirmDelete: (model, name) => `确认删除 ${model} ${name}？此操作不可恢复。`,
+        enterDomain: '请先在上方输入域名'
+      },
+      en: {
+        title: 'Product Admin',
+        subtitle: 'Internal use only',
+        newButton: '+ New Product',
+        domainTitle: 'NFC Label URL',
+        domainPlaceholder: 'https://your-domain',
+        domainHint: 'The URL below updates automatically',
+        empty: 'No product data yet. Click "+ New Product" to start.',
+        edit: 'Edit',
+        delete: 'Delete',
+        urlLabel: 'URL',
+        copy: 'Copy',
+        copied: 'Copied ✓',
+        logout: 'Logout',
+        confirmDelete: (model, name) => `Delete ${model} ${name}? This action cannot be undone.`,
+        enterDomain: 'Enter a domain first'
+      }
+    };
+
     const domainInput = document.getElementById('domain-input');
+    let currentLang = 'en';
 
     function updateUrls() {
       const domain = (domainInput.value || '').replace(/\/$/, '');
       document.querySelectorAll('.url-display').forEach(el => {
         el.textContent = domain + el.getAttribute('data-path');
       });
+    }
+
+    function updateProductNames(lang) {
+      document.querySelectorAll('.product-name').forEach(el => {
+        const name = lang === 'zh' ? (el.getAttribute('data-name-zh') || el.getAttribute('data-name-en'))
+          : (el.getAttribute('data-name-en') || el.getAttribute('data-name-zh'));
+        el.textContent = name || '';
+      });
+      document.querySelectorAll('.product-name-secondary').forEach(el => {
+        const secondary = lang === 'zh' ? el.getAttribute('data-name-en') : el.getAttribute('data-name-zh');
+        el.textContent = secondary ? `/ ${secondary}` : '';
+      });
+    }
+
+    function switchLang(lang) {
+      currentLang = lang;
+      localStorage.setItem('lang', lang);
+      document.documentElement.lang = lang === 'zh' ? 'zh-CN' : 'en';
+      document.title = i18n[lang].title;
+
+      document.getElementById('page-title').textContent = i18n[lang].title;
+      document.getElementById('page-subtitle').textContent = i18n[lang].subtitle;
+      document.getElementById('new-button').textContent = i18n[lang].newButton;
+      document.getElementById('logout-button').textContent = i18n[lang].logout;
+      document.getElementById('domain-title').textContent = i18n[lang].domainTitle;
+      domainInput.placeholder = i18n[lang].domainPlaceholder;
+      document.getElementById('domain-hint').textContent = i18n[lang].domainHint;
+
+      const emptyState = document.getElementById('empty-state');
+      if (emptyState) emptyState.textContent = i18n[lang].empty;
+
+      document.querySelectorAll('.edit-button').forEach(el => {
+        el.textContent = i18n[lang].edit;
+      });
+      document.querySelectorAll('.delete-button').forEach(el => {
+        el.textContent = i18n[lang].delete;
+      });
+      document.querySelectorAll('.url-label').forEach(el => {
+        el.textContent = i18n[lang].urlLabel;
+      });
+      document.querySelectorAll('.copy-button').forEach(el => {
+        if (!el.dataset.copied) el.textContent = i18n[lang].copy;
+      });
+
+      updateProductNames(lang);
+
+      const isZh = lang === 'zh';
+      const btnZh = document.getElementById('btn-zh');
+      const btnEn = document.getElementById('btn-en');
+      btnZh.classList.toggle('font-semibold', isZh);
+      btnZh.classList.toggle('border-blue-400', isZh);
+      btnZh.classList.toggle('text-blue-500', isZh);
+      btnEn.classList.toggle('font-semibold', !isZh);
+      btnEn.classList.toggle('border-blue-400', !isZh);
+      btnEn.classList.toggle('text-blue-500', !isZh);
     }
 
     domainInput.addEventListener('input', updateUrls);
@@ -117,19 +204,34 @@
       const code = btn.previousElementSibling;
       const text = code.textContent;
       if (!text || text.startsWith('/')) {
-        alert('请先在上方输入域名');
+        alert(i18n[currentLang].enterDomain);
         return;
       }
       navigator.clipboard.writeText(text).then(() => {
-        const orig = btn.textContent;
-        btn.textContent = '已复制 ✓';
+        const original = i18n[currentLang].copy;
+        btn.dataset.copied = '1';
+        btn.textContent = i18n[currentLang].copied;
         btn.classList.add('bg-green-100', 'text-green-600');
         setTimeout(() => {
-          btn.textContent = orig;
+          btn.textContent = original;
           btn.classList.remove('bg-green-100', 'text-green-600');
+          delete btn.dataset.copied;
         }, 1500);
       });
     }
+
+    function confirmDelete(form) {
+      const name = currentLang === 'zh'
+        ? (form.dataset.nameZh || form.dataset.nameEn || '')
+        : (form.dataset.nameEn || form.dataset.nameZh || '');
+      return confirm(i18n[currentLang].confirmDelete(form.dataset.model || '', name));
+    }
+
+    (function () {
+      const urlLang = new URLSearchParams(location.search).get('lang');
+      const savedLang = localStorage.getItem('lang');
+      switchLang(urlLang || savedLang || 'en');
+    })();
   </script>
 </body>
 </html>

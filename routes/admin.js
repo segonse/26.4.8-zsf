@@ -2,9 +2,14 @@ const express = require('express');
 const path = require('path');
 const fs = require('fs');
 const multer = require('multer');
+const crypto = require('crypto');
 const router = express.Router();
 
 const DATA_FILE = path.join(__dirname, '../data/products.json');
+const MAX_UPLOAD_SIZE = 10 * 1024 * 1024;
+const IMAGE_MIME_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp']);
+const IMAGE_EXTENSIONS = new Set(['.jpg', '.jpeg', '.png', '.webp']);
+const PDF_MIME_TYPES = new Set(['application/pdf', 'application/octet-stream']);
 
 // ── 文件上传配置 ──────────────────────────────────────────────
 const storage = multer.diskStorage({
@@ -17,12 +22,30 @@ const storage = multer.diskStorage({
   },
   filename(req, file, cb) {
     const ext = path.extname(file.originalname);
-    const base = path.basename(file.originalname, ext)
-      .replace(/[^a-zA-Z0-9\u4e00-\u9fa5._-]/g, '_');
-    cb(null, `${base}${ext}`);
+    cb(null, `${crypto.randomUUID()}${ext.toLowerCase()}`);
   }
 });
-const upload = multer({ storage });
+const upload = multer({
+  storage,
+  limits: {
+    fileSize: MAX_UPLOAD_SIZE
+  },
+  fileFilter(req, file, cb) {
+    const ext = path.extname(file.originalname).toLowerCase();
+    const isImageField = file.fieldname === 'productImage' || file.fieldname === 'certThumbs';
+    const isPdfField = file.fieldname === 'certFiles';
+
+    if (isImageField && IMAGE_MIME_TYPES.has(file.mimetype) && IMAGE_EXTENSIONS.has(ext)) {
+      return cb(null, true);
+    }
+
+    if (isPdfField && PDF_MIME_TYPES.has(file.mimetype) && ext === '.pdf') {
+      return cb(null, true);
+    }
+
+    return cb(new Error('Only PDF files and JPG/PNG/WEBP images are allowed'));
+  }
+});
 
 // ── 数据读写工具 ──────────────────────────────────────────────
 function readData() {
@@ -31,6 +54,16 @@ function readData() {
 }
 function writeData(data) {
   fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2), 'utf8');
+}
+
+function buildUploadErrorMessage(err) {
+  if (err instanceof multer.MulterError) {
+    if (err.code === 'LIMIT_FILE_SIZE') {
+      return 'Each uploaded file must be 10MB or smaller';
+    }
+    return 'Upload failed';
+  }
+  return err.message || 'Upload failed';
 }
 
 function readBodyField(body, key) {
@@ -174,14 +207,14 @@ router.post('/products', uploadFields, (req, res) => {
     return res.render('admin/form', {
       product: null,
       action: '/admin/products',
-      error: '产品型号不能为空'
+      error: 'Product model is required'
     });
   }
   if (data.products.find(p => p.model === model)) {
     return res.render('admin/form', {
       product: null,
       action: '/admin/products',
-      error: `型号 ${model} 已存在`
+      error: `Product model ${model} already exists`
     });
   }
   const product = buildProduct(req.body, req.files, null);
@@ -220,7 +253,7 @@ router.post('/api/products', uploadFields, (req, res) => {
   const data = readData();
   const product = buildProduct(req.body, req.files, null);
   if (data.products.find(p => p.model === product.model)) {
-    return res.status(409).json({ error: '型号已存在' });
+    return res.status(409).json({ error: 'Product model already exists' });
   }
   data.products.push(product);
   writeData(data);
@@ -230,7 +263,7 @@ router.post('/api/products', uploadFields, (req, res) => {
 router.put('/api/products/:model', uploadFields, (req, res) => {
   const data = readData();
   const idx = data.products.findIndex(p => p.model === req.params.model);
-  if (idx === -1) return res.status(404).json({ error: '产品不存在' });
+  if (idx === -1) return res.status(404).json({ error: 'Product not found' });
   const updated = buildProduct(req.body, req.files, data.products[idx]);
   updated.model = data.products[idx].model;
   data.products[idx] = updated;
@@ -242,9 +275,36 @@ router.delete('/api/products/:model', (req, res) => {
   const data = readData();
   const before = data.products.length;
   data.products = data.products.filter(p => p.model !== req.params.model);
-  if (data.products.length === before) return res.status(404).json({ error: '产品不存在' });
+  if (data.products.length === before) return res.status(404).json({ error: 'Product not found' });
   writeData(data);
   res.json({ ok: true });
+});
+
+router.use((err, req, res, next) => {
+  if (!err) return next();
+
+  const error = buildUploadErrorMessage(err);
+  if (req.originalUrl.startsWith('/admin/api/')) {
+    return res.status(400).json({ error });
+  }
+
+  let product = null;
+  let action = '/admin/products';
+  if (req.params.model) {
+    const { products } = readData();
+    const existing = products.find(p => p.model === req.params.model) || null;
+    action = `/admin/products/${req.params.model}/update`;
+    if (req.body && Object.keys(req.body).length > 0) {
+      product = buildProduct(req.body, null, existing);
+      if (existing) product.model = existing.model;
+    } else {
+      product = existing;
+    }
+  } else if (req.body && Object.keys(req.body).length > 0) {
+    product = buildProduct(req.body, null, null);
+  }
+
+  return res.status(400).render('admin/form', { product, action, error });
 });
 
 module.exports = router;

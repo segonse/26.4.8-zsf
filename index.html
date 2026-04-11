@@ -1,47 +1,101 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>产品背书资料查询</title>
+  <title>Product Credentials Lookup</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-50 min-h-screen flex items-center justify-center p-4">
 
   <div class="w-full max-w-sm bg-white rounded-2xl shadow-sm p-6 space-y-4 text-center">
+    <div class="flex items-center justify-end gap-2">
+      <button onclick="switchLang('zh')" id="btn-zh" class="text-xs px-2 py-0.5 rounded-full border border-gray-300 text-gray-500 hover:bg-gray-50 transition-colors">中文</button>
+      <button onclick="switchLang('en')" id="btn-en" class="text-xs px-2 py-0.5 rounded-full border border-gray-300 text-gray-500 hover:bg-gray-50 transition-colors">EN</button>
+    </div>
+
     <div class="mx-auto w-12 h-12 bg-blue-50 rounded-full flex items-center justify-center">
       <svg class="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
               d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
       </svg>
     </div>
+
     <div>
-      <h1 class="text-lg font-bold text-gray-800">产品背书资料查询</h1>
-      <p class="text-sm text-gray-400 mt-1">输入产品型号查看背书资料</p>
+      <h1 id="page-title" class="text-lg font-bold text-gray-800">Product Credentials Lookup</h1>
+      <p id="page-subtitle" class="text-sm text-gray-400 mt-1">Enter a product model to view credentials</p>
     </div>
+
     <div>
-      <input id="model-input" type="text" placeholder="例如 FC789-1"
+      <input id="model-input" type="text" placeholder="For example FC789-1"
              class="w-full border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300 text-center tracking-widest">
     </div>
-    <button onclick="goToProduct()"
+
+    <button id="search-button" onclick="goToProduct()"
             class="w-full bg-blue-500 text-white text-sm font-medium rounded-lg py-2.5 hover:bg-blue-600 active:bg-blue-700 transition-colors">
-      查询
+      Search
     </button>
-    <p class="text-xs text-gray-300">或用手机 NFC 碰触产品标签直接查看</p>
+
+    <p id="nfc-hint" class="text-xs text-gray-300">Or tap the product NFC tag to open directly</p>
   </div>
 
   <script>
+    const i18n = {
+      zh: {
+        title: '产品背书资料查询',
+        subtitle: '输入产品型号查看背书资料',
+        placeholder: '例如 FC789-1',
+        search: '查询',
+        hint: '或用手机 NFC 碰触产品标签直接查看'
+      },
+      en: {
+        title: 'Product Credentials Lookup',
+        subtitle: 'Enter a product model to view credentials',
+        placeholder: 'For example FC789-1',
+        search: 'Search',
+        hint: 'Or tap the product NFC tag to open directly'
+      }
+    };
+
+    function switchLang(lang) {
+      localStorage.setItem('lang', lang);
+      document.documentElement.lang = lang === 'zh' ? 'zh-CN' : 'en';
+      document.title = i18n[lang].title;
+      document.getElementById('page-title').textContent = i18n[lang].title;
+      document.getElementById('page-subtitle').textContent = i18n[lang].subtitle;
+      document.getElementById('model-input').placeholder = i18n[lang].placeholder;
+      document.getElementById('search-button').textContent = i18n[lang].search;
+      document.getElementById('nfc-hint').textContent = i18n[lang].hint;
+
+      const isZh = lang === 'zh';
+      const btnZh = document.getElementById('btn-zh');
+      const btnEn = document.getElementById('btn-en');
+      btnZh.classList.toggle('font-semibold', isZh);
+      btnZh.classList.toggle('border-blue-400', isZh);
+      btnZh.classList.toggle('text-blue-500', isZh);
+      btnEn.classList.toggle('font-semibold', !isZh);
+      btnEn.classList.toggle('border-blue-400', !isZh);
+      btnEn.classList.toggle('text-blue-500', !isZh);
+    }
+
     function goToProduct() {
       var model = document.getElementById('model-input').value.trim();
       if (model) {
-        window.location.href = model + '.html';
+        window.location.href = model;
       }
     }
+
     document.getElementById('model-input').addEventListener('keydown', function(e) {
       if (e.key === 'Enter') goToProduct();
     });
-    // 自动聚焦输入框
+
     document.getElementById('model-input').focus();
+
+    (function () {
+      const urlLang = new URLSearchParams(location.search).get('lang');
+      const savedLang = localStorage.getItem('lang');
+      switchLang(urlLang || savedLang || 'en');
+    })();
   </script>
 </body>
 </html>

@@ -1,19 +1,31 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title><%= product ? '编辑产品 — ' + product.model : '新增产品' %></title>
+  <title><%= product ? 'Edit Product — ' + product.model : 'New Product' %></title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-50 min-h-screen">
 
   <header class="bg-white border-b sticky top-0 z-10">
-    <div class="max-w-2xl mx-auto px-4 py-3 flex items-center gap-3">
-      <a href="/admin" class="text-gray-400 hover:text-gray-600 text-sm">← 返回</a>
-      <h1 class="text-sm font-semibold text-gray-800">
-        <%= product ? '编辑产品 — ' + product.model : '新增产品' %>
-      </h1>
+    <div class="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <a href="/admin" id="back-link" class="text-gray-400 hover:text-gray-600 text-sm">← Back</a>
+        <h1 id="form-title" class="text-sm font-semibold text-gray-800">
+          <%= product ? 'Edit Product — ' + product.model : 'New Product' %>
+        </h1>
+      </div>
+      <div class="flex items-center gap-2 shrink-0">
+        <button onclick="switchLang('zh')" id="btn-zh" type="button" class="text-xs px-2 py-0.5 rounded-full border border-gray-300 text-gray-500 hover:bg-gray-50 transition-colors">中文</button>
+        <button onclick="switchLang('en')" id="btn-en" type="button" class="text-xs px-2 py-0.5 rounded-full border border-gray-300 text-gray-500 hover:bg-gray-50 transition-colors">EN</button>
+        <form method="POST" action="/logout">
+          <button id="logout-button" type="submit"
+                  class="text-xs border border-gray-300 text-gray-600 px-3 py-1.5 rounded-lg hover:bg-gray-50 transition-colors">
+            Logout
+          </button>
+        </form>
+      </div>
     </div>
   </header>
 
@@ -28,7 +40,7 @@
 
       <!-- ── 基本信息 ─────────────────────────────────────── -->
       <section class="bg-white rounded-2xl shadow-sm p-5 space-y-4">
-        <h2 class="text-sm font-semibold text-gray-700 border-b pb-2">基本信息</h2>
+        <h2 id="section-basic" class="text-sm font-semibold text-gray-700 border-b pb-2">Basic Information</h2>
 
         <div class="grid grid-cols-2 gap-4">
           <div>
@@ -43,7 +55,7 @@
             <input type="file" name="productImage" accept="image/*"
                    class="w-full text-sm text-gray-500 file:mr-2 file:py-1 file:px-3 file:rounded file:border-0 file:text-xs file:bg-blue-50 file:text-blue-600 hover:file:bg-blue-100">
             <% if (product && product.image) { %>
-            <p class="text-xs text-gray-400 mt-1">当前：<%= product.image %></p>
+            <p class="current-file text-xs text-gray-400 mt-1" data-path="<%= product.image %>">Current: <%= product.image %></p>
             <% } %>
           </div>
         </div>
@@ -100,7 +112,7 @@
 
       <!-- ── 产品参数 ─────────────────────────────────────── -->
       <section class="bg-white rounded-2xl shadow-sm p-5 space-y-4">
-        <h2 class="text-sm font-semibold text-gray-700 border-b pb-2">产品参数</h2>
+        <h2 id="section-params" class="text-sm font-semibold text-gray-700 border-b pb-2">Product Specs</h2>
 
         <div class="grid grid-cols-3 gap-3">
           <div>
@@ -194,7 +206,7 @@
 
       <!-- ── 包装参数 ─────────────────────────────────────── -->
       <section class="bg-white rounded-2xl shadow-sm p-5 space-y-4">
-        <h2 class="text-sm font-semibold text-gray-700 border-b pb-2">包装参数</h2>
+        <h2 id="section-pkg" class="text-sm font-semibold text-gray-700 border-b pb-2">Packaging</h2>
         <div class="grid grid-cols-3 gap-3">
           <div>
             <label class="block text-xs text-gray-500 mb-1">包装尺寸</label>
@@ -229,7 +241,7 @@
 
       <!-- ── 专利信息 ─────────────────────────────────────── -->
       <section class="bg-white rounded-2xl shadow-sm p-5 space-y-4">
-        <h2 class="text-sm font-semibold text-gray-700 border-b pb-2">专利信息</h2>
+        <h2 id="section-patent" class="text-sm font-semibold text-gray-700 border-b pb-2">Patent Information</h2>
 
         <div class="grid grid-cols-3 gap-3">
           <div>
@@ -341,8 +353,8 @@
 
       <!-- ── 证书附件 ─────────────────────────────────────── -->
       <section class="bg-white rounded-2xl shadow-sm p-5 space-y-4">
-        <h2 class="text-sm font-semibold text-gray-700 border-b pb-2">证书附件</h2>
-        <p class="text-xs text-gray-400">每行为一个证书，填写名称后可上传 PDF 和缩略图。</p>
+        <h2 id="section-cert" class="text-sm font-semibold text-gray-700 border-b pb-2">Certificate Attachments</h2>
+        <p id="cert-help" class="text-xs text-gray-400">One certificate per row. Fill the name and upload the PDF and thumbnail.</p>
 
         <div id="cert-list" class="space-y-4">
           <% const certs = (product && product.certificates) ? product.certificates : []; %>
@@ -376,13 +388,13 @@
                 <label class="block text-xs text-gray-500 mb-1">PDF 文件</label>
                 <input type="file" name="certFiles" accept=".pdf"
                        class="w-full text-xs text-gray-500 file:mr-1 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:bg-blue-50 file:text-blue-600">
-                <% if (cert.file) { %><p class="text-xs text-gray-400 mt-0.5 truncate"><%= cert.file %></p><% } %>
+                <% if (cert.file) { %><p class="current-file text-xs text-gray-400 mt-0.5 truncate" data-path="<%= cert.file %>">Current: <%= cert.file %></p><% } %>
               </div>
               <div>
                 <label class="block text-xs text-gray-500 mb-1">缩略图</label>
                 <input type="file" name="certThumbs" accept="image/*"
                        class="w-full text-xs text-gray-500 file:mr-1 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:bg-blue-50 file:text-blue-600">
-                <% if (cert.thumb) { %><p class="text-xs text-gray-400 mt-0.5 truncate"><%= cert.thumb %></p><% } %>
+                <% if (cert.thumb) { %><p class="current-file text-xs text-gray-400 mt-0.5 truncate" data-path="<%= cert.thumb %>">Current: <%= cert.thumb %></p><% } %>
               </div>
             </div>
             <input type="hidden" name="certs[<%= i %>][file]" value="<%= cert.file %>">
@@ -393,21 +405,21 @@
 
         <input type="hidden" id="cert-count" name="certCount" value="<%= certs.length %>">
 
-        <button type="button" onclick="addCert()"
+        <button id="add-cert-button" type="button" onclick="addCert()"
                 class="text-xs border border-dashed border-gray-300 text-gray-500 hover:border-blue-400 hover:text-blue-500 w-full py-2 rounded-xl transition-colors">
-          + 添加证书
+          + Add Certificate
         </button>
       </section>
 
       <!-- ── 提交按钮 ─────────────────────────────────────── -->
       <div class="flex gap-3">
-        <button type="submit"
+        <button id="save-button" type="submit"
                 class="flex-1 bg-blue-500 text-white text-sm font-medium py-3 rounded-xl hover:bg-blue-600 transition-colors">
-          保存
+          Save
         </button>
-        <a href="/admin"
+        <a id="cancel-link" href="/admin"
            class="px-6 py-3 border border-gray-300 text-gray-500 text-sm rounded-xl hover:bg-gray-50 transition-colors">
-          取消
+          Cancel
         </a>
       </div>
 
@@ -415,45 +427,352 @@
   </main>
 
   <script>
+    const formMode = <%- JSON.stringify(product ? 'edit' : 'new') %>;
+    const formModel = <%- JSON.stringify(product ? product.model : '') %>;
+    const i18n = {
+      zh: {
+        title: formMode === 'edit' ? `编辑产品 — ${formModel}` : '新增产品',
+        back: '← 返回',
+        sectionBasic: '基本信息',
+        sectionParams: '产品参数',
+        sectionPkg: '包装参数',
+        sectionPatent: '专利信息',
+        sectionCert: '证书附件',
+        certHelp: '每行为一个证书，填写名称后可上传 PDF 和缩略图。',
+        addCert: '+ 添加证书',
+        save: '保存',
+        cancel: '取消',
+        logout: '退出',
+        currentPrefix: '当前：',
+        fieldLabels: {
+          model: '产品型号',
+          productImage: '产品图片',
+          name: '产品名称（中文）',
+          nameEn: 'Product Name (English)',
+          company: '公司名称（中文）',
+          companyEn: 'Company Name (English)',
+          address: '地址（中文）',
+          addressEn: 'Address (English)',
+          'params.battery': '电池容量',
+          'params.power': '最大功率',
+          'params.speed': '电机转速',
+          'params.blade': '刀片材质（中文）',
+          'params.bladeEn': 'Blade Material (EN)',
+          'params.port': '充电接口',
+          'params.chargingTime': '充电时长',
+          'params.productionDate': '生产日期',
+          'params.weight': '产品重量',
+          'params.dimensions': '产品尺寸',
+          'params.dimensionsUnit': '尺寸单位',
+          'pkg.size': '包装尺寸',
+          'pkg.qty': '装箱数量（中）',
+          'pkg.qtyEn': 'Carton Qty (EN)',
+          'pkg.carton': '装箱尺寸',
+          'patent.no': '专利号',
+          'patent.pubNo': '授权公告号',
+          'patent.certNo': '专利证书号（中）',
+          'patent.certNoEn': 'Certificate No. (EN)',
+          'patent.owner': '专利权人',
+          'patent.name': '专利名称（中文）',
+          'patent.nameEn': 'Patent Name (EN)',
+          'patent.designer': '设计人',
+          'patent.applyDate': '申请日',
+          'patent.pubDate': '授权公告日',
+          'patent.issuer': '发证机构（中）',
+          'patent.issuerEn': 'Issuing Authority (EN)',
+          'patent.evalDate': '评价报告提交日'
+        },
+        placeholders: {
+          model: '如 FC789-1',
+          name: '毛发修剪器',
+          nameEn: 'Hair Clipper',
+          company: '温州鸿业健身器材有限公司',
+          companyEn: 'Wenzhou Hongye Fitness Equipment Co., Ltd.',
+          'params.battery': '1200 mAh',
+          'params.power': '5 W',
+          'params.speed': '6000 RPM',
+          'params.blade': '3铬13 不锈铁',
+          'params.bladeEn': '3Cr13 Stainless Steel',
+          'params.port': 'Type-C',
+          'params.chargingTime': '（待确认）',
+          'params.productionDate': '（待补充）',
+          'params.weight': '141.2 g',
+          'params.dimensions': '4.5×3×15',
+          'params.dimensionsUnit': 'cm 或 mm',
+          'pkg.size': '12.8×52.5×20 cm',
+          'pkg.qty': '80 台/箱',
+          'pkg.qtyEn': '80 pcs/ctn',
+          'pkg.carton': '55×41.5×53.5 cm',
+          'patent.no': 'ZL 2025 3 0594617.X',
+          'patent.pubNo': 'CN 309606064 S',
+          'patent.certNo': '第 9621776 号',
+          'patent.certNoEn': 'No. 9621776',
+          'patent.owner': '温州鸿业健身器材有限公司',
+          'patent.name': '毛发修剪器（外观设计）',
+          'patent.nameEn': 'Hair Clipper (Industrial Design)',
+          'patent.designer': '蔡盈盈',
+          'patent.applyDate': '2025-10-10',
+          'patent.pubDate': '2025-11-14',
+          'patent.issuer': '国家知识产权局',
+          'patent.issuerEn': 'China National Intellectual Property Administration',
+          'patent.evalDate': '2025-12-19'
+        },
+        certLabels: {
+          nameZh: '证书名称（中文）',
+          nameEn: 'Certificate Name (EN)',
+          date: '日期',
+          file: 'PDF 文件',
+          thumb: '缩略图'
+        }
+      },
+      en: {
+        title: formMode === 'edit' ? `Edit Product — ${formModel}` : 'New Product',
+        back: '← Back',
+        sectionBasic: 'Basic Information',
+        sectionParams: 'Product Specs',
+        sectionPkg: 'Packaging',
+        sectionPatent: 'Patent Information',
+        sectionCert: 'Certificate Attachments',
+        certHelp: 'One certificate per row. Fill the name and upload the PDF and thumbnail.',
+        addCert: '+ Add Certificate',
+        save: 'Save',
+        cancel: 'Cancel',
+        logout: 'Logout',
+        currentPrefix: 'Current:',
+        fieldLabels: {
+          model: 'Product Model',
+          productImage: 'Product Image',
+          name: 'Product Name (CN)',
+          nameEn: 'Product Name (EN)',
+          company: 'Company Name (CN)',
+          companyEn: 'Company Name (EN)',
+          address: 'Address (CN)',
+          addressEn: 'Address (EN)',
+          'params.battery': 'Battery',
+          'params.power': 'Max Power',
+          'params.speed': 'Motor Speed',
+          'params.blade': 'Blade Material (CN)',
+          'params.bladeEn': 'Blade Material (EN)',
+          'params.port': 'Charging Port',
+          'params.chargingTime': 'Charging Time',
+          'params.productionDate': 'Production Date',
+          'params.weight': 'Weight',
+          'params.dimensions': 'Dimensions',
+          'params.dimensionsUnit': 'Unit',
+          'pkg.size': 'Package Size',
+          'pkg.qty': 'Carton Qty (CN)',
+          'pkg.qtyEn': 'Carton Qty (EN)',
+          'pkg.carton': 'Carton Size',
+          'patent.no': 'Patent No.',
+          'patent.pubNo': 'Publication No.',
+          'patent.certNo': 'Certificate No. (CN)',
+          'patent.certNoEn': 'Certificate No. (EN)',
+          'patent.owner': 'Patentee',
+          'patent.name': 'Patent Name (CN)',
+          'patent.nameEn': 'Patent Name (EN)',
+          'patent.designer': 'Designer',
+          'patent.applyDate': 'Application Date',
+          'patent.pubDate': 'Publication Date',
+          'patent.issuer': 'Issuing Authority (CN)',
+          'patent.issuerEn': 'Issuing Authority (EN)',
+          'patent.evalDate': 'Evaluation Report Date'
+        },
+        placeholders: {
+          model: 'e.g. FC789-1',
+          name: 'Hair Clipper',
+          nameEn: 'Hair Clipper',
+          company: 'Wenzhou Hongye Fitness Equipment Co., Ltd.',
+          companyEn: 'Wenzhou Hongye Fitness Equipment Co., Ltd.',
+          'params.battery': '1200 mAh',
+          'params.power': '5 W',
+          'params.speed': '6000 RPM',
+          'params.blade': '3Cr13 Stainless Steel',
+          'params.bladeEn': '3Cr13 Stainless Steel',
+          'params.port': 'Type-C',
+          'params.chargingTime': 'TBD',
+          'params.productionDate': 'TBD',
+          'params.weight': '141.2 g',
+          'params.dimensions': '4.5×3×15',
+          'params.dimensionsUnit': 'cm or mm',
+          'pkg.size': '12.8×52.5×20 cm',
+          'pkg.qty': '80 pcs/ctn',
+          'pkg.qtyEn': '80 pcs/ctn',
+          'pkg.carton': '55×41.5×53.5 cm',
+          'patent.no': 'ZL 2025 3 0594617.X',
+          'patent.pubNo': 'CN 309606064 S',
+          'patent.certNo': 'No. 9621776',
+          'patent.certNoEn': 'No. 9621776',
+          'patent.owner': 'Wenzhou Hongye Fitness Equipment Co., Ltd.',
+          'patent.name': 'Hair Clipper (Industrial Design)',
+          'patent.nameEn': 'Hair Clipper (Industrial Design)',
+          'patent.designer': 'Cai Yingying',
+          'patent.applyDate': '2025-10-10',
+          'patent.pubDate': '2025-11-14',
+          'patent.issuer': 'China National Intellectual Property Administration',
+          'patent.issuerEn': 'China National Intellectual Property Administration',
+          'patent.evalDate': '2025-12-19'
+        },
+        certLabels: {
+          nameZh: 'Certificate Name (CN)',
+          nameEn: 'Certificate Name (EN)',
+          date: 'Date',
+          file: 'PDF File',
+          thumb: 'Thumbnail'
+        }
+      }
+    };
+
     let certCount = parseInt(document.getElementById('cert-count').value, 10);
+    let currentLang = 'en';
+
+    function getNamedElements(name) {
+      return document.getElementsByName(name);
+    }
+
+    function getFirstNamedElement(name) {
+      return getNamedElements(name)[0] || null;
+    }
+
+    function setFieldLabel(name, text, required) {
+      const input = getFirstNamedElement(name);
+      if (!input) return;
+      const label = input.parentElement.querySelector('label');
+      if (!label) return;
+      label.innerHTML = required
+        ? `${text} <span class="text-red-400">*</span>`
+        : text;
+    }
+
+    function setPlaceholder(name, text) {
+      const input = getFirstNamedElement(name);
+      if (input && text !== undefined) input.placeholder = text;
+    }
+
+    function updateCurrentFileLabels(lang) {
+      document.querySelectorAll('.current-file').forEach(el => {
+        el.textContent = `${i18n[lang].currentPrefix} ${el.dataset.path}`;
+      });
+    }
+
+    function updateCertItemLabels(item, lang) {
+      const labels = item.querySelectorAll('label');
+      if (labels.length < 5) return;
+      labels[0].textContent = i18n[lang].certLabels.nameZh;
+      labels[1].textContent = i18n[lang].certLabels.nameEn;
+      labels[2].textContent = i18n[lang].certLabels.date;
+      labels[3].textContent = i18n[lang].certLabels.file;
+      labels[4].textContent = i18n[lang].certLabels.thumb;
+    }
+
+    function switchLang(lang) {
+      currentLang = lang;
+      localStorage.setItem('lang', lang);
+      document.documentElement.lang = lang === 'zh' ? 'zh-CN' : 'en';
+      document.title = i18n[lang].title;
+
+      document.getElementById('back-link').textContent = i18n[lang].back;
+      document.getElementById('form-title').textContent = i18n[lang].title;
+      document.getElementById('section-basic').textContent = i18n[lang].sectionBasic;
+      document.getElementById('section-params').textContent = i18n[lang].sectionParams;
+      document.getElementById('section-pkg').textContent = i18n[lang].sectionPkg;
+      document.getElementById('section-patent').textContent = i18n[lang].sectionPatent;
+      document.getElementById('section-cert').textContent = i18n[lang].sectionCert;
+      document.getElementById('cert-help').textContent = i18n[lang].certHelp;
+      document.getElementById('add-cert-button').textContent = i18n[lang].addCert;
+      document.getElementById('save-button').textContent = i18n[lang].save;
+      document.getElementById('cancel-link').textContent = i18n[lang].cancel;
+      document.getElementById('logout-button').textContent = i18n[lang].logout;
+
+      setFieldLabel('model', i18n[lang].fieldLabels.model, true);
+      setFieldLabel('productImage', i18n[lang].fieldLabels.productImage, false);
+      setFieldLabel('name', i18n[lang].fieldLabels.name, false);
+      setFieldLabel('nameEn', i18n[lang].fieldLabels.nameEn, false);
+      setFieldLabel('company', i18n[lang].fieldLabels.company, false);
+      setFieldLabel('companyEn', i18n[lang].fieldLabels.companyEn, false);
+      setFieldLabel('address', i18n[lang].fieldLabels.address, false);
+      setFieldLabel('addressEn', i18n[lang].fieldLabels.addressEn, false);
+      setFieldLabel('params.battery', i18n[lang].fieldLabels['params.battery'], false);
+      setFieldLabel('params.power', i18n[lang].fieldLabels['params.power'], false);
+      setFieldLabel('params.speed', i18n[lang].fieldLabels['params.speed'], false);
+      setFieldLabel('params.blade', i18n[lang].fieldLabels['params.blade'], false);
+      setFieldLabel('params.bladeEn', i18n[lang].fieldLabels['params.bladeEn'], false);
+      setFieldLabel('params.port', i18n[lang].fieldLabels['params.port'], false);
+      setFieldLabel('params.chargingTime', i18n[lang].fieldLabels['params.chargingTime'], false);
+      setFieldLabel('params.productionDate', i18n[lang].fieldLabels['params.productionDate'], false);
+      setFieldLabel('params.weight', i18n[lang].fieldLabels['params.weight'], false);
+      setFieldLabel('params.dimensions', i18n[lang].fieldLabels['params.dimensions'], false);
+      setFieldLabel('params.dimensionsUnit', i18n[lang].fieldLabels['params.dimensionsUnit'], false);
+      setFieldLabel('pkg.size', i18n[lang].fieldLabels['pkg.size'], false);
+      setFieldLabel('pkg.qty', i18n[lang].fieldLabels['pkg.qty'], false);
+      setFieldLabel('pkg.qtyEn', i18n[lang].fieldLabels['pkg.qtyEn'], false);
+      setFieldLabel('pkg.carton', i18n[lang].fieldLabels['pkg.carton'], false);
+      setFieldLabel('patent.no', i18n[lang].fieldLabels['patent.no'], false);
+      setFieldLabel('patent.pubNo', i18n[lang].fieldLabels['patent.pubNo'], false);
+      setFieldLabel('patent.certNo', i18n[lang].fieldLabels['patent.certNo'], false);
+      setFieldLabel('patent.certNoEn', i18n[lang].fieldLabels['patent.certNoEn'], false);
+      setFieldLabel('patent.owner', i18n[lang].fieldLabels['patent.owner'], false);
+      setFieldLabel('patent.name', i18n[lang].fieldLabels['patent.name'], false);
+      setFieldLabel('patent.nameEn', i18n[lang].fieldLabels['patent.nameEn'], false);
+      setFieldLabel('patent.designer', i18n[lang].fieldLabels['patent.designer'], false);
+      setFieldLabel('patent.applyDate', i18n[lang].fieldLabels['patent.applyDate'], false);
+      setFieldLabel('patent.pubDate', i18n[lang].fieldLabels['patent.pubDate'], false);
+      setFieldLabel('patent.issuer', i18n[lang].fieldLabels['patent.issuer'], false);
+      setFieldLabel('patent.issuerEn', i18n[lang].fieldLabels['patent.issuerEn'], false);
+      setFieldLabel('patent.evalDate', i18n[lang].fieldLabels['patent.evalDate'], false);
+
+      Object.entries(i18n[lang].placeholders).forEach(([name, text]) => {
+        setPlaceholder(name, text);
+      });
+
+      document.querySelectorAll('.cert-item').forEach(item => updateCertItemLabels(item, lang));
+      updateCurrentFileLabels(lang);
+
+      const isZh = lang === 'zh';
+      const btnZh = document.getElementById('btn-zh');
+      const btnEn = document.getElementById('btn-en');
+      btnZh.classList.toggle('font-semibold', isZh);
+      btnZh.classList.toggle('border-blue-400', isZh);
+      btnZh.classList.toggle('text-blue-500', isZh);
+      btnEn.classList.toggle('font-semibold', !isZh);
+      btnEn.classList.toggle('border-blue-400', !isZh);
+      btnEn.classList.toggle('text-blue-500', !isZh);
+    }
 
     function updateCertCount() {
       document.getElementById('cert-count').value = certCount;
     }
 
-    function addCert() {
-      const i = certCount;
-      const div = document.createElement('div');
-      div.className = 'cert-item border rounded-xl p-4 space-y-3 relative';
-      div.innerHTML = `
+    function renderCertItem(i) {
+      const labels = i18n[currentLang].certLabels;
+      return `
         <button type="button" onclick="removeCert(this)"
                 class="absolute top-3 right-3 text-xs text-red-400 hover:text-red-600">✕</button>
         <div class="grid grid-cols-2 gap-3">
           <div>
-            <label class="block text-xs text-gray-500 mb-1">证书名称（中文）</label>
+            <label class="block text-xs text-gray-500 mb-1">${labels.nameZh}</label>
             <input type="text" name="certs[${i}][nameZh]"
                    class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300">
           </div>
           <div>
-            <label class="block text-xs text-gray-500 mb-1">Certificate Name (EN)</label>
+            <label class="block text-xs text-gray-500 mb-1">${labels.nameEn}</label>
             <input type="text" name="certs[${i}][nameEn]"
                    class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300">
           </div>
         </div>
         <div class="grid grid-cols-3 gap-3">
           <div>
-            <label class="block text-xs text-gray-500 mb-1">日期</label>
+            <label class="block text-xs text-gray-500 mb-1">${labels.date}</label>
             <input type="text" name="certs[${i}][date]"
                    class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
                    placeholder="2025-11-14">
           </div>
           <div>
-            <label class="block text-xs text-gray-500 mb-1">PDF 文件</label>
+            <label class="block text-xs text-gray-500 mb-1">${labels.file}</label>
             <input type="file" name="certFiles" accept=".pdf"
                    class="w-full text-xs text-gray-500 file:mr-1 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:bg-blue-50 file:text-blue-600">
           </div>
           <div>
-            <label class="block text-xs text-gray-500 mb-1">缩略图</label>
+            <label class="block text-xs text-gray-500 mb-1">${labels.thumb}</label>
             <input type="file" name="certThumbs" accept="image/*"
                    class="w-full text-xs text-gray-500 file:mr-1 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:bg-blue-50 file:text-blue-600">
           </div>
@@ -461,9 +780,17 @@
         <input type="hidden" name="certs[${i}][file]" value="">
         <input type="hidden" name="certs[${i}][thumb]" value="">
       `;
+    }
+
+    function addCert() {
+      const i = certCount;
+      const div = document.createElement('div');
+      div.className = 'cert-item border rounded-xl p-4 space-y-3 relative';
+      div.innerHTML = renderCertItem(i);
       document.getElementById('cert-list').appendChild(div);
       certCount++;
       updateCertCount();
+      switchLang(currentLang);
     }
 
     function removeCert(btn) {
@@ -477,6 +804,12 @@
       certCount = document.querySelectorAll('#cert-list .cert-item').length;
       updateCertCount();
     }
+
+    (function () {
+      const urlLang = new URLSearchParams(location.search).get('lang');
+      const savedLang = localStorage.getItem('lang');
+      switchLang(urlLang || savedLang || 'en');
+    })();
   </script>
 </body>
 </html>

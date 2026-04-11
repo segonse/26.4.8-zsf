@@ -198,8 +198,9 @@
 
   </main>
 
+  <script id="product-data" type="application/json"><%- productJson %></script>
   <script>
-    const PRODUCT = <%- JSON.stringify(product) %>;
+    const PRODUCT = JSON.parse(document.getElementById('product-data').textContent);
 
     const i18n = {
       zh: {

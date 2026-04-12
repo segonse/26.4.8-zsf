@@ -1,4 +1,7 @@
 node_modules/
 package-lock.json
 data/admin-auth.json
+data/session-secret.txt
+data/*.bak
+data/*.tmp
 server-*.log

@@ -1,12 +1,13 @@
 const express = require('express');
+const rateLimit = require('express-rate-limit');
 const session = require('express-session');
 const path = require('path');
-const crypto = require('crypto');
 const { loadAdminCredentials, verifyAdminCredentials } = require('./lib/admin-auth');
+const { loadSessionSecret } = require('./lib/session-secret');
 const app = express();
 const PORT = process.env.PORT || 3000;
 const adminCredentials = loadAdminCredentials();
-const sessionSecret = process.env.SESSION_SECRET || crypto.randomBytes(32).toString('hex');
+const sessionSecret = loadSessionSecret();
 
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
@@ -32,6 +33,19 @@ app.use('/css', express.static(path.join(__dirname, 'css')));
 app.use('/images', express.static(path.join(__dirname, 'images')));
 app.use('/certificates', express.static(path.join(__dirname, 'certificates')));
 
+const loginRateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  handler(req, res) {
+    return res.status(429).render('login', {
+      error: 'Too many login attempts. Please try again later.',
+      lastUsername: (req.body && req.body.username) || adminCredentials.username
+    });
+  }
+});
+
 function requireAuth(req, res, next) {
   if (req.session && req.session.isAdminAuthenticated) {
     return next();
@@ -52,7 +66,7 @@ app.get('/login', (req, res) => {
   res.render('login', { error: null, lastUsername: adminCredentials.username });
 });
 
-app.post('/login', (req, res) => {
+app.post('/login', loginRateLimiter, (req, res) => {
   const username = (req.body.username || '').trim();
   const password = req.body.password || '';
   if (!verifyAdminCredentials(adminCredentials, username, password)) {

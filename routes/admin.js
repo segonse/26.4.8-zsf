@@ -6,15 +6,34 @@ const crypto = require('crypto');
 const router = express.Router();
 
 const DATA_FILE = path.join(__dirname, '../data/products.json');
+const DATA_FILE_BACKUP = `${DATA_FILE}.bak`;
+const DATA_FILE_TEMP = `${DATA_FILE}.tmp`;
 const MAX_UPLOAD_SIZE = 10 * 1024 * 1024;
 const IMAGE_MIME_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp']);
 const IMAGE_EXTENSIONS = new Set(['.jpg', '.jpeg', '.png', '.webp']);
 const PDF_MIME_TYPES = new Set(['application/pdf', 'application/octet-stream']);
 
+function isProductImageField(fieldname) {
+  return fieldname === 'productImage';
+}
+
+function isCertFileField(fieldname) {
+  return /^certFiles\[\d+\]$/.test(fieldname);
+}
+
+function isCertThumbField(fieldname) {
+  return /^certThumbs\[\d+\]$/.test(fieldname);
+}
+
+function findUploadedFile(files, fieldname) {
+  if (!Array.isArray(files)) return null;
+  return files.find(file => file.fieldname === fieldname) || null;
+}
+
 // ── 文件上传配置 ──────────────────────────────────────────────
 const storage = multer.diskStorage({
   destination(req, file, cb) {
-    if (file.fieldname === 'productImage' || file.fieldname === 'certThumbs') {
+    if (isProductImageField(file.fieldname) || isCertThumbField(file.fieldname)) {
       cb(null, path.join(__dirname, '../images'));
     } else {
       cb(null, path.join(__dirname, '../certificates'));
@@ -32,8 +51,8 @@ const upload = multer({
   },
   fileFilter(req, file, cb) {
     const ext = path.extname(file.originalname).toLowerCase();
-    const isImageField = file.fieldname === 'productImage' || file.fieldname === 'certThumbs';
-    const isPdfField = file.fieldname === 'certFiles';
+    const isImageField = isProductImageField(file.fieldname) || isCertThumbField(file.fieldname);
+    const isPdfField = isCertFileField(file.fieldname);
 
     if (isImageField && IMAGE_MIME_TYPES.has(file.mimetype) && IMAGE_EXTENSIONS.has(ext)) {
       return cb(null, true);
@@ -50,10 +69,26 @@ const upload = multer({
 // ── 数据读写工具 ──────────────────────────────────────────────
 function readData() {
   if (!fs.existsSync(DATA_FILE)) return { products: [] };
-  return JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
+  try {
+    return JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
+  } catch (error) {
+    console.error('[data] Failed to parse products.json:', error.message);
+    if (fs.existsSync(DATA_FILE_BACKUP)) {
+      try {
+        console.warn('[data] Falling back to backup file:', DATA_FILE_BACKUP);
+        return JSON.parse(fs.readFileSync(DATA_FILE_BACKUP, 'utf8'));
+      } catch (backupError) {
+        console.error('[data] Failed to parse backup products file:', backupError.message);
+      }
+    }
+    return { products: [] };
+  }
 }
 function writeData(data) {
-  fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2), 'utf8');
+  const json = JSON.stringify(data, null, 2);
+  fs.writeFileSync(DATA_FILE_TEMP, json, 'utf8');
+  fs.renameSync(DATA_FILE_TEMP, DATA_FILE);
+  fs.writeFileSync(DATA_FILE_BACKUP, json, 'utf8');
 }
 
 function buildUploadErrorMessage(err) {
@@ -104,18 +139,27 @@ function buildProduct(body, files, existing) {
     };
   }
 
-  if (files && files.productImage && files.productImage[0]) {
-    body.image = 'images/' + files.productImage[0].filename;
+  const uploadedFiles = Array.isArray(files)
+    ? files
+    : files
+      ? Object.values(files).flat()
+      : [];
+
+  const productImageFile = findUploadedFile(uploadedFiles, 'productImage');
+  if (productImageFile) {
+    body.image = 'images/' + productImageFile.filename;
   }
-  if (files && files.certFiles) {
-    files.certFiles.forEach((f, i) => {
-      if (certificates[i]) certificates[i].file = 'certificates/' + f.filename;
-    });
-  }
-  if (files && files.certThumbs) {
-    files.certThumbs.forEach((f, i) => {
-      if (certificates[i]) certificates[i].thumb = 'images/' + f.filename;
-    });
+
+  for (let i = 0; i < certCount; i++) {
+    const certFile = findUploadedFile(uploadedFiles, `certFiles[${i}]`);
+    if (certFile && certificates[i]) {
+      certificates[i].file = 'certificates/' + certFile.filename;
+    }
+
+    const certThumb = findUploadedFile(uploadedFiles, `certThumbs[${i}]`);
+    if (certThumb && certificates[i]) {
+      certificates[i].thumb = 'images/' + certThumb.filename;
+    }
   }
 
   return {
@@ -193,11 +237,7 @@ router.get('/:model/edit', (req, res) => {
 
 // ── 表单提交路由 ───────────────────────────────────────────────
 
-const uploadFields = upload.fields([
-  { name: 'productImage', maxCount: 1 },
-  { name: 'certFiles',    maxCount: 10 },
-  { name: 'certThumbs',   maxCount: 10 }
-]);
+const uploadFields = upload.any();
 
 // POST /admin/products → 新增产品
 router.post('/products', uploadFields, (req, res) => {

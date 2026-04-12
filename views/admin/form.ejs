@@ -386,13 +386,13 @@
               </div>
               <div>
                 <label class="block text-xs text-gray-500 mb-1">PDF 文件</label>
-                <input type="file" name="certFiles" accept=".pdf"
+                <input type="file" name="certFiles[<%= i %>]" accept=".pdf"
                        class="w-full text-xs text-gray-500 file:mr-1 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:bg-blue-50 file:text-blue-600">
                 <% if (cert.file) { %><p class="current-file text-xs text-gray-400 mt-0.5 truncate" data-path="<%= cert.file %>">Current: <%= cert.file %></p><% } %>
               </div>
               <div>
                 <label class="block text-xs text-gray-500 mb-1">缩略图</label>
-                <input type="file" name="certThumbs" accept="image/*"
+                <input type="file" name="certThumbs[<%= i %>]" accept="image/*"
                        class="w-full text-xs text-gray-500 file:mr-1 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:bg-blue-50 file:text-blue-600">
                 <% if (cert.thumb) { %><p class="current-file text-xs text-gray-400 mt-0.5 truncate" data-path="<%= cert.thumb %>">Current: <%= cert.thumb %></p><% } %>
               </div>
@@ -768,12 +768,12 @@
           </div>
           <div>
             <label class="block text-xs text-gray-500 mb-1">${labels.file}</label>
-            <input type="file" name="certFiles" accept=".pdf"
+            <input type="file" name="certFiles[${i}]" accept=".pdf"
                    class="w-full text-xs text-gray-500 file:mr-1 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:bg-blue-50 file:text-blue-600">
           </div>
           <div>
             <label class="block text-xs text-gray-500 mb-1">${labels.thumb}</label>
-            <input type="file" name="certThumbs" accept="image/*"
+            <input type="file" name="certThumbs[${i}]" accept="image/*"
                    class="w-full text-xs text-gray-500 file:mr-1 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:bg-blue-50 file:text-blue-600">
           </div>
         </div>
@@ -798,7 +798,10 @@
       // 重新编号 cert-items 中的 name 属性
       document.querySelectorAll('#cert-list .cert-item').forEach((item, idx) => {
         item.querySelectorAll('[name]').forEach(el => {
-          el.name = el.name.replace(/certs\[\d+\]/, `certs[${idx}]`);
+          el.name = el.name
+            .replace(/certs\[\d+\]/, `certs[${idx}]`)
+            .replace(/certFiles\[\d+\]/, `certFiles[${idx}]`)
+            .replace(/certThumbs\[\d+\]/, `certThumbs[${idx}]`);
         });
       });
       certCount = document.querySelectorAll('#cert-list .cert-item').length;

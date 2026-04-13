@@ -2,18 +2,14 @@
   "products": [
     {
       "model": "FC789-1",
-      "name": "毛发修剪器",
       "nameEn": "Hair Clipper",
-      "company": "温州鸿业健身器材有限公司",
       "companyEn": "Wenzhou Hongye Fitness Equipment Co., Ltd.",
-      "address": "325000 浙江省温州市平阳县万全镇张阁村254号",
       "addressEn": "No.254, Zhangge Village, Wanquan Town, Pingyang County, Wenzhou, Zhejiang, China",
       "image": "images/product-fc789-1.jpg",
       "params": {
         "battery": "1200 mAh",
         "power": "5 W",
         "speed": "6000 RPM",
-        "blade": "3铬13 不锈铁",
         "bladeEn": "3Cr13 Stainless Steel",
         "port": "Type-C",
         "chargingTime": "",
@@ -24,39 +20,33 @@
       },
       "pkg": {
         "size": "12.8 × 52.5 × 20 cm",
-        "qty": "80 台/箱",
         "qtyEn": "80 pcs/ctn",
         "carton": "55 × 41.5 × 53.5 cm"
       },
       "patent": {
         "no": "ZL 2025 3 0594617.X",
         "pubNo": "CN 309606064 S",
-        "certNo": "第 9621776 号",
         "certNoEn": "No. 9621776",
-        "name": "毛发修剪器（外观设计）",
         "nameEn": "Hair Clipper (Industrial Design)",
-        "owner": "温州鸿业健身器材有限公司",
-        "designer": "蔡盈盈",
+        "ownerEn": "Wenzhou Hongye Fitness Equipment Co., Ltd.",
+        "designerEn": "Cai Yingying",
         "applyDate": "2025-10-10",
         "pubDate": "2025-11-14",
-        "issuer": "国家知识产权局",
         "issuerEn": "China National Intellectual Property Administration",
         "evalDate": "2025-12-19"
       },
       "certificates": [
         {
-          "nameZh": "外观设计专利证书",
           "nameEn": "Design Patent Certificate",
+          "date": "2025-11-14",
           "file": "certificates/design-patent.pdf",
-          "thumb": "images/cert-thumb-patent.jpg",
-          "date": "2025-11-14"
+          "thumb": "images/cert-thumb-patent.jpg"
         },
         {
-          "nameZh": "外观设计专利权评价报告",
           "nameEn": "Design Patent Evaluation Report",
+          "date": "2025-12-19",
           "file": "certificates/patent-evaluation.pdf",
-          "thumb": "images/cert-thumb-evaluation.jpg",
-          "date": "2025-12-19"
+          "thumb": "images/cert-thumb-evaluation.jpg"
         }
       ]
     }

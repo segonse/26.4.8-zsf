@@ -1,5 +1,5 @@
 node_modules/
-package-lock.json
+nginx/*.zip
 data/admin-auth.json
 data/session-secret.txt
 data/*.bak

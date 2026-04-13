@@ -1,53 +1,108 @@
 #!/bin/bash
-# deploy.sh — 服务器端部署/更新脚本
-# 用法：bash deploy.sh
-# 首次运行：克隆仓库并配置权限
-# 后续运行：拉取最新代码
+# deploy.sh — 安装依赖、初始化存储目录、重启服务
+# 用法：sudo APP_ROOT=/srv/apps/info.c.bimumedia.com/current bash deploy.sh
 
-set -e
+set -euo pipefail
 
-REPO_URL="https://github.com/你的用户名/product-credential-site.git"
-DEPLOY_DIR="/var/www/product-credential-site"
+APP_NAME="${APP_NAME:-product-credential-site}"
+APP_ROOT="${APP_ROOT:-$(cd "$(dirname "$0")" && pwd)}"
+APP_STORAGE_ROOT="${APP_STORAGE_ROOT:-/srv/data/info.c.bimumedia.com}"
+SERVICE_NAME="${SERVICE_NAME:-$APP_NAME}"
+APP_USER="${APP_USER:-www-data}"
+APP_GROUP="${APP_GROUP:-www-data}"
+PORT="${PORT:-18081}"
+NODE_BIN="${NODE_BIN:-}"
+NPM_BIN="${NPM_BIN:-}"
 
 echo "==============================="
-echo "  产品背书页面 部署/更新脚本"
+echo "  产品背书页面部署脚本"
 echo "==============================="
+echo "APP_ROOT=$APP_ROOT"
+echo "APP_STORAGE_ROOT=$APP_STORAGE_ROOT"
+echo "SERVICE_NAME=$SERVICE_NAME"
 
-if [ ! -d "$DEPLOY_DIR/.git" ]; then
-    echo "[首次部署] 正在克隆仓库..."
-    sudo mkdir -p "$DEPLOY_DIR"
-    sudo chown "$(whoami):$(whoami)" "$DEPLOY_DIR"
-    git clone "$REPO_URL" "$DEPLOY_DIR"
-    echo "[首次部署] 克隆完成。"
-else
-    echo "[更新] 正在拉取最新代码..."
-    cd "$DEPLOY_DIR"
-    git pull origin main
-    echo "[更新] 完成。"
+if [ -z "$NODE_BIN" ] && command -v node >/dev/null 2>&1; then
+    NODE_BIN="$(command -v node)"
 fi
 
-echo "[依赖] 正在安装 Node.js 依赖..."
-cd "$DEPLOY_DIR"
-npm install --production
-
-echo "[进程] 正在重启 Node.js 服务..."
-if pm2 list | grep -q "product-credential-site"; then
-    pm2 reload ecosystem.config.js --update-env
-else
-    pm2 start ecosystem.config.js
+if [ -z "$NPM_BIN" ] && command -v npm >/dev/null 2>&1; then
+    NPM_BIN="$(command -v npm)"
 fi
-pm2 save
 
-echo "[权限] 正在设置文件权限..."
-sudo chown -R www-data:www-data "$DEPLOY_DIR"
-sudo chmod -R 755 "$DEPLOY_DIR"
-# 恢复 Node.js 进程用户的写权限（用于 data/ 目录）
-sudo chown -R "$(whoami):$(whoami)" "$DEPLOY_DIR/data"
-sudo chown -R "$(whoami):$(whoami)" "$DEPLOY_DIR/images"
-sudo chown -R "$(whoami):$(whoami)" "$DEPLOY_DIR/certificates"
+if [ -z "$NPM_BIN" ] && [ -n "$NODE_BIN" ]; then
+    NODE_DIR="$(dirname "$NODE_BIN")"
+    if [ -x "$NODE_DIR/npm" ]; then
+        NPM_BIN="$NODE_DIR/npm"
+    fi
+fi
+
+if [ -n "$NODE_BIN" ]; then
+    NODE_DIR="$(dirname "$NODE_BIN")"
+    export PATH="$NODE_DIR:$PATH"
+fi
+
+if [ ! -f "$APP_ROOT/package.json" ]; then
+    echo "错误：未在 $APP_ROOT 找到 package.json"
+    exit 1
+fi
+
+echo "[目录] 初始化持久化目录..."
+install -d -m 0750 -o "$APP_USER" -g "$APP_GROUP" "$APP_STORAGE_ROOT"
+install -d -m 0750 -o "$APP_USER" -g "$APP_GROUP" "$APP_STORAGE_ROOT/data"
+install -d -m 0750 -o "$APP_USER" -g "$APP_GROUP" "$APP_STORAGE_ROOT/images"
+install -d -m 0750 -o "$APP_USER" -g "$APP_GROUP" "$APP_STORAGE_ROOT/certificates"
+install -d -m 0750 -o "$APP_USER" -g "$APP_GROUP" "$APP_STORAGE_ROOT/sessions"
+
+echo "[资源] 同步仓库内置静态资源到持久化目录..."
+if [ -d "$APP_ROOT/images" ]; then
+    cp -a "$APP_ROOT/images/." "$APP_STORAGE_ROOT/images/"
+fi
+if [ -d "$APP_ROOT/certificates" ]; then
+    cp -a "$APP_ROOT/certificates/." "$APP_STORAGE_ROOT/certificates/"
+fi
+if [ ! -f "$APP_STORAGE_ROOT/data/products.json" ] && [ -f "$APP_ROOT/data/products.json" ]; then
+    cp -a "$APP_ROOT/data/products.json" "$APP_STORAGE_ROOT/data/products.json"
+fi
+
+echo "[迁移] 规范化产品数据结构..."
+if [ -z "$NODE_BIN" ] || [ ! -x "$NODE_BIN" ]; then
+    echo "错误：未找到可执行的 node，请通过 NODE_BIN 指定，或确保 PATH 中存在 node"
+    exit 1
+fi
+"$NODE_BIN" "$APP_ROOT/scripts/migrate-products.js" "$APP_STORAGE_ROOT/data/products.json"
+
+echo "[依赖] 安装生产依赖..."
+cd "$APP_ROOT"
+if [ -z "$NPM_BIN" ] || [ ! -x "$NPM_BIN" ]; then
+    echo "错误：未找到可执行的 npm，请通过 NPM_BIN 指定，或确保 PATH 中存在 npm"
+    exit 1
+fi
+if [ -f package-lock.json ]; then
+    "$NPM_BIN" ci --omit=dev
+else
+    "$NPM_BIN" install --omit=dev --no-package-lock
+fi
+
+echo "[权限] 校正代码目录与数据目录权限..."
+chown -R "$APP_USER:$APP_GROUP" "$APP_STORAGE_ROOT"
+find "$APP_STORAGE_ROOT" -type d -exec chmod 750 {} \;
+find "$APP_STORAGE_ROOT" -type f -exec chmod 640 {} \;
+
+echo "[进程] 重启应用服务..."
+if command -v systemctl >/dev/null 2>&1 && { [ -f "/etc/systemd/system/${SERVICE_NAME}.service" ] || [ -f "/usr/lib/systemd/system/${SERVICE_NAME}.service" ]; }; then
+    systemctl daemon-reload
+    systemctl restart "$SERVICE_NAME"
+    systemctl status "$SERVICE_NAME" --no-pager || true
+elif command -v pm2 >/dev/null 2>&1; then
+    APP_STORAGE_ROOT="$APP_STORAGE_ROOT" PORT="$PORT" COOKIE_SECURE="${COOKIE_SECURE:-true}" pm2 startOrReload ecosystem.config.js --update-env
+    pm2 save
+    pm2 status "$APP_NAME" || true
+else
+    echo "警告：未找到 systemd 服务 $SERVICE_NAME，也未安装 pm2，请手动启动应用。"
+fi
 
 echo "==============================="
-echo "  部署完成！"
-echo "  站点目录：$DEPLOY_DIR"
-echo "  服务端口：55789（由 Nginx 反代）"
+echo "部署完成"
+echo "Node 监听端口：$PORT"
+echo "持久化目录：$APP_STORAGE_ROOT"
 echo "==============================="

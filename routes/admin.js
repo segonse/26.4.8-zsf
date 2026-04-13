@@ -3,9 +3,15 @@ const path = require('path');
 const fs = require('fs');
 const multer = require('multer');
 const crypto = require('crypto');
+const {
+  PRODUCTS_FILE,
+  IMAGES_DIR,
+  CERTIFICATES_DIR
+} = require('../lib/runtime-paths');
+const { normalizeProductsData } = require('../lib/product-schema');
 const router = express.Router();
 
-const DATA_FILE = path.join(__dirname, '../data/products.json');
+const DATA_FILE = PRODUCTS_FILE;
 const DATA_FILE_BACKUP = `${DATA_FILE}.bak`;
 const DATA_FILE_TEMP = `${DATA_FILE}.tmp`;
 const MAX_UPLOAD_SIZE = 10 * 1024 * 1024;
@@ -34,9 +40,9 @@ function findUploadedFile(files, fieldname) {
 const storage = multer.diskStorage({
   destination(req, file, cb) {
     if (isProductImageField(file.fieldname) || isCertThumbField(file.fieldname)) {
-      cb(null, path.join(__dirname, '../images'));
+      cb(null, IMAGES_DIR);
     } else {
-      cb(null, path.join(__dirname, '../certificates'));
+      cb(null, CERTIFICATES_DIR);
     }
   },
   filename(req, file, cb) {
@@ -70,13 +76,13 @@ const upload = multer({
 function readData() {
   if (!fs.existsSync(DATA_FILE)) return { products: [] };
   try {
-    return JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
+    return normalizeProductsData(JSON.parse(fs.readFileSync(DATA_FILE, 'utf8')));
   } catch (error) {
     console.error('[data] Failed to parse products.json:', error.message);
     if (fs.existsSync(DATA_FILE_BACKUP)) {
       try {
         console.warn('[data] Falling back to backup file:', DATA_FILE_BACKUP);
-        return JSON.parse(fs.readFileSync(DATA_FILE_BACKUP, 'utf8'));
+        return normalizeProductsData(JSON.parse(fs.readFileSync(DATA_FILE_BACKUP, 'utf8')));
       } catch (backupError) {
         console.error('[data] Failed to parse backup products file:', backupError.message);
       }
@@ -131,7 +137,6 @@ function buildProduct(body, files, existing) {
   const certificates = new Array(certCount);
   for (let i = 0; i < certCount; i++) {
     certificates[i] = {
-      nameZh: readCertField(body, i, 'nameZh').trim(),
       nameEn: readCertField(body, i, 'nameEn').trim(),
       date: readCertField(body, i, 'date').trim(),
       file: readCertField(body, i, 'file').trim(),
@@ -164,18 +169,14 @@ function buildProduct(body, files, existing) {
 
   return {
     model:      readBodyField(body, 'model') || (existing && existing.model) || '',
-    name:       readBodyField(body, 'name'),
     nameEn:     readBodyField(body, 'nameEn'),
-    company:    readBodyField(body, 'company'),
     companyEn:  readBodyField(body, 'companyEn'),
-    address:    readBodyField(body, 'address'),
     addressEn:  readBodyField(body, 'addressEn'),
     image:      readBodyField(body, 'image') || (existing && existing.image) || '',
     params: {
       battery:        readBodyField(body, 'params.battery'),
       power:          readBodyField(body, 'params.power'),
       speed:          readBodyField(body, 'params.speed'),
-      blade:          readBodyField(body, 'params.blade'),
       bladeEn:        readBodyField(body, 'params.bladeEn'),
       port:           readBodyField(body, 'params.port'),
       chargingTime:   readBodyField(body, 'params.chargingTime'),
@@ -186,27 +187,23 @@ function buildProduct(body, files, existing) {
     },
     pkg: {
       size:    readBodyField(body, 'pkg.size'),
-      qty:     readBodyField(body, 'pkg.qty'),
       qtyEn:   readBodyField(body, 'pkg.qtyEn'),
       carton:  readBodyField(body, 'pkg.carton')
     },
     patent: {
       no:         readBodyField(body, 'patent.no'),
       pubNo:      readBodyField(body, 'patent.pubNo'),
-      certNo:     readBodyField(body, 'patent.certNo'),
       certNoEn:   readBodyField(body, 'patent.certNoEn'),
-      name:       readBodyField(body, 'patent.name'),
       nameEn:     readBodyField(body, 'patent.nameEn'),
-      owner:      readBodyField(body, 'patent.owner'),
-      designer:   readBodyField(body, 'patent.designer'),
+      ownerEn:    readBodyField(body, 'patent.ownerEn'),
+      designerEn: readBodyField(body, 'patent.designerEn'),
       applyDate:  readBodyField(body, 'patent.applyDate'),
       pubDate:    readBodyField(body, 'patent.pubDate'),
-      issuer:     readBodyField(body, 'patent.issuer'),
       issuerEn:   readBodyField(body, 'patent.issuerEn'),
       evalDate:   readBodyField(body, 'patent.evalDate')
     },
     certificates: certificates.filter(cert =>
-      cert.nameZh || cert.nameEn || cert.date || cert.file || cert.thumb)
+      cert.nameEn || cert.date || cert.file || cert.thumb)
   };
 }
 

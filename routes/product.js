@@ -1,12 +1,15 @@
 const express = require('express');
-const path = require('path');
 const fs = require('fs');
 const { serializeForScript } = require('../lib/safe-json');
+const { PRODUCTS_FILE } = require('../lib/runtime-paths');
+const { normalizeProductsData } = require('../lib/product-schema');
 const router = express.Router();
 
 function loadProducts() {
-  const file = path.join(__dirname, '../data/products.json');
-  return JSON.parse(fs.readFileSync(file, 'utf8'));
+  if (!fs.existsSync(PRODUCTS_FILE)) {
+    return { products: [] };
+  }
+  return normalizeProductsData(JSON.parse(fs.readFileSync(PRODUCTS_FILE, 'utf8')));
 }
 
 router.get('/:model', (req, res, next) => {

@@ -1,7 +1,18 @@
 const express = require('express');
 const rateLimit = require('express-rate-limit');
 const session = require('express-session');
+const FileStore = require('session-file-store')(session);
 const path = require('path');
+const {
+  APP_ROOT,
+  IMAGES_DIR,
+  CERTIFICATES_DIR,
+  SESSIONS_DIR,
+  ensureRuntimeDirectories
+} = require('./lib/runtime-paths');
+
+ensureRuntimeDirectories();
+
 const { loadAdminCredentials, verifyAdminCredentials } = require('./lib/admin-auth');
 const { loadSessionSecret } = require('./lib/session-secret');
 const app = express();
@@ -10,7 +21,7 @@ const adminCredentials = loadAdminCredentials();
 const sessionSecret = loadSessionSecret();
 
 app.set('view engine', 'ejs');
-app.set('views', path.join(__dirname, 'views'));
+app.set('views', path.join(APP_ROOT, 'views'));
 app.set('trust proxy', 1);
 
 app.use(express.json());
@@ -18,6 +29,13 @@ app.use(express.urlencoded({ extended: true }));
 app.use(session({
   name: 'product_admin_session',
   secret: sessionSecret,
+  store: new FileStore({
+    path: SESSIONS_DIR,
+    ttl: 60 * 60 * 12,
+    reapInterval: 60 * 60,
+    retries: 0,
+    logFn() {}
+  }),
   resave: false,
   saveUninitialized: false,
   cookie: {
@@ -29,9 +47,15 @@ app.use(session({
 }));
 
 // 静态资源
-app.use('/css', express.static(path.join(__dirname, 'css')));
-app.use('/images', express.static(path.join(__dirname, 'images')));
-app.use('/certificates', express.static(path.join(__dirname, 'certificates')));
+app.use('/css', express.static(path.join(APP_ROOT, 'css')));
+app.use('/images', express.static(IMAGES_DIR));
+app.use('/certificates', express.static(CERTIFICATES_DIR));
+if (IMAGES_DIR !== path.join(APP_ROOT, 'images')) {
+  app.use('/images', express.static(path.join(APP_ROOT, 'images')));
+}
+if (CERTIFICATES_DIR !== path.join(APP_ROOT, 'certificates')) {
+  app.use('/certificates', express.static(path.join(APP_ROOT, 'certificates')));
+}
 
 const loginRateLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -93,12 +117,14 @@ app.post('/logout', (req, res) => {
 app.use('/admin', requireAuth, require('./routes/admin'));
 
 // 首页
-app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
-app.get('/index.html', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
+app.get('/healthz', (req, res) => res.status(200).json({ ok: true }));
+
+app.get('/', (req, res) => res.sendFile(path.join(APP_ROOT, 'index.html')));
+app.get('/index.html', (req, res) => res.sendFile(path.join(APP_ROOT, 'index.html')));
 
 // A档静态版（保留向后兼容）
 app.get('/FC789-1-basic.html', (req, res) =>
-  res.sendFile(path.join(__dirname, 'FC789-1-basic.html')));
+  res.sendFile(path.join(APP_ROOT, 'FC789-1-basic.html')));
 
 // 旧 admin.html → 重定向到新后台
 app.get('/admin.html', (req, res) => res.redirect(301, '/admin'));
@@ -108,7 +134,7 @@ app.use('/', require('./routes/product'));
 
 // 404
 app.use((req, res) => {
-  res.status(404).sendFile(path.join(__dirname, 'index.html'));
+  res.status(404).sendFile(path.join(APP_ROOT, 'index.html'));
 });
 
 app.listen(PORT, () => {

@@ -1,6 +1,16 @@
 # 产品背书资料展示页
 
-温州鸿业健身器材有限公司 — 产品专利与参数背书展示
+温州鸿业健身器材有限公司产品专利与参数背书展示站。
+
+当前仓库已按单机生产部署方式整理：
+
+- Web 层：`Nginx` 统一监听 `80/443`
+- 应用层：`Node.js + Express + EJS`
+- 进程管理：优先 `systemd`，`pm2` 仅作临时兼容
+- 持久化：产品数据、上传图片、PDF 证书独立放在代码目录外
+
+当前这台服务器的 Node.js 已通过 `nvm` 安装在 `/root/.nvm/versions/node/v24.14.1/bin/node`。
+因此仓库内的 `systemd` 模板已按这一路径适配，服务默认以 `root:www-data` 运行，方便访问 `nvm` 二进制同时让 Nginx 正常读取静态文件。
 
 ## 文件说明
 
@@ -9,13 +19,43 @@
 | `FC789-1.html` | FC789-1 产品详情页（B档展示版，主要交付物） |
 | `FC789-1-basic.html` | FC789-1 产品详情页（A档基础版，报价对比用） |
 | `index.html` | 首页（手动输入型号查询，NFC 降级方案） |
-| `admin.html` | URL 管理页（内部使用，复制 URL 写入 NFC 标签） |
+| `admin.html` | 旧后台入口，现已 301 跳转到 `/admin` |
 | `ASSETS-CHECKLIST.md` | 上线前需收齐的资源清单 |
 | `css/style.css` | 自定义补充样式 |
-| `images/` | 产品图片和证书缩略图 |
-| `certificates/` | 证书 PDF 文件 |
-| `nginx/site.conf` | Nginx 站点配置参考 |
-| `deploy.sh` | 服务器端一键部署/更新脚本 |
+| `data/` | 本地开发默认数据目录 |
+| `images/` | 本地开发默认图片目录 |
+| `certificates/` | 本地开发默认 PDF 目录 |
+| `nginx/site.conf` | 生产 Nginx 站点模板 |
+| `systemd/product-credential-site.service` | 生产 `systemd` 服务模板 |
+| `systemd/product-credential-site.env.example` | 生产环境变量示例 |
+| `deploy.sh` | 安装依赖、初始化持久化目录、重启服务 |
+
+## 运行时目录设计
+
+本项目默认兼容本地开发目录结构，但生产环境建议通过 `APP_STORAGE_ROOT` 将可写目录拆到代码目录之外：
+
+```text
+/srv/apps/info.c.bimumedia.com/current
+/srv/data/info.c.bimumedia.com/data
+/srv/data/info.c.bimumedia.com/images
+/srv/data/info.c.bimumedia.com/certificates
+```
+
+支持的环境变量：
+
+| 变量 | 说明 |
+|------|------|
+| `PORT` | Node.js 监听端口，推荐 `18081` |
+| `APP_ROOT` | 代码目录，供 `systemd` 启动脚本使用 |
+| `NODE_BIN` | Node.js 可执行文件路径，当前机器是 `/root/.nvm/versions/node/v24.14.1/bin/node` |
+| `COOKIE_SECURE` | HTTPS 环境下设为 `true` |
+| `APP_STORAGE_ROOT` | 持久化根目录，生产环境强烈建议设置 |
+| `APP_DATA_DIR` | 可选，覆盖默认 `APP_STORAGE_ROOT/data` |
+| `APP_IMAGES_DIR` | 可选，覆盖默认 `APP_STORAGE_ROOT/images` |
+| `APP_CERTIFICATES_DIR` | 可选，覆盖默认 `APP_STORAGE_ROOT/certificates` |
+| `ADMIN_USERNAME` | 后台用户名 |
+| `ADMIN_PASSWORD` | 后台密码 |
+| `SESSION_SECRET` | Session 密钥 |
 
 ## NFC 使用流程
 
@@ -33,12 +73,18 @@
    git commit -m "更新说明，例如：补充充电时长参数"
    git push
    ```
-3. 在服务器上拉取更新：
+3. 在服务器上更新代码：
    ```bash
-   cd /var/www/product-credential-site
+   cd /srv/apps/info.c.bimumedia.com/current
    git pull
    ```
-   或直接运行：`bash deploy.sh`
+4. 在服务器上执行部署脚本：
+   ```bash
+   sudo APP_ROOT=/srv/apps/info.c.bimumedia.com/current \
+     APP_STORAGE_ROOT=/srv/data/info.c.bimumedia.com \
+     SERVICE_NAME=product-credential-site \
+     bash deploy.sh
+   ```
 
 ## 新增产品
 
@@ -52,29 +98,112 @@
 
 ## 首次部署到服务器
 
+### 1. 新机初始化建议
+
 ```bash
-# 1. SSH 连接到服务器
-ssh user@服务器IP
-
-# 2. 安装必要软件
 sudo apt update
-sudo apt install -y nginx git
+sudo apt install -y nginx git curl
 
-# 3. 运行部署脚本（先编辑 deploy.sh 填写 REPO_URL）
-bash deploy.sh
+# 2G 机器建议至少补 1G swap，避免安装依赖或多项目并存时 OOM
+sudo fallocate -l 1G /swapfile
+sudo chmod 600 /swapfile
+sudo mkswap /swapfile
+sudo swapon /swapfile
+echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
+```
 
-# 4. 配置 Nginx
-sudo cp /var/www/product-credential-site/nginx/site.conf /etc/nginx/sites-available/product-credential
-# 编辑配置文件，替换"域名"为实际域名
-sudo nano /etc/nginx/sites-available/product-credential
-sudo ln -s /etc/nginx/sites-available/product-credential /etc/nginx/sites-enabled/
+### 2. 推荐目录结构
+
+```bash
+sudo mkdir -p /srv/apps/info.c.bimumedia.com
+sudo mkdir -p /srv/data/info.c.bimumedia.com
+sudo git clone <你的仓库地址> /srv/apps/info.c.bimumedia.com/current
+```
+
+### 3. 配置应用环境变量
+
+```bash
+sudo mkdir -p /etc/product-credential-site
+sudo cp systemd/product-credential-site.env.example \
+  /etc/product-credential-site/info.c.bimumedia.com.env
+sudo nano /etc/product-credential-site/info.c.bimumedia.com.env
+```
+
+其中至少确认：
+
+```text
+APP_ROOT=/srv/apps/info.c.bimumedia.com/current
+NODE_BIN=/root/.nvm/versions/node/v24.14.1/bin/node
+PORT=18081
+```
+
+### 4. 安装 systemd 服务
+
+```bash
+sudo cp systemd/product-credential-site.service \
+  /etc/systemd/system/product-credential-site.service
+sudo nano /etc/systemd/system/product-credential-site.service
+sudo systemctl daemon-reload
+sudo systemctl enable product-credential-site
+```
+
+说明：
+
+- 当前模板默认 `User=root`，因为这台机器的 `node` 在 `/root/.nvm/...`
+- 如果后续改成系统级 Node，或把 `nvm` 安装到专门部署用户下，再把服务用户收回到普通用户即可
+
+### 5. 执行部署脚本
+
+```bash
+cd /srv/apps/info.c.bimumedia.com/current
+sudo APP_ROOT=/srv/apps/info.c.bimumedia.com/current \
+  APP_STORAGE_ROOT=/srv/data/info.c.bimumedia.com \
+  SERVICE_NAME=product-credential-site \
+  bash deploy.sh
+```
+
+### 6. 配置 Nginx 与 HTTPS
+
+```bash
+sudo cp nginx/site.conf /etc/nginx/sites-available/info.c.bimumedia.com
+sudo nano /etc/nginx/sites-available/info.c.bimumedia.com
+sudo ln -s /etc/nginx/sites-available/info.c.bimumedia.com /etc/nginx/sites-enabled/info.c.bimumedia.com
 sudo nginx -t
 sudo systemctl reload nginx
-
-# 5. 配置 HTTPS（强烈推荐，NFC 跳转需要 HTTPS）
-sudo apt install -y certbot python3-certbot-nginx
-sudo certbot --nginx -d 你的域名
 ```
+
+如果使用 Let’s Encrypt：
+
+```bash
+sudo apt install -y certbot python3-certbot-nginx
+sudo certbot --nginx -d info.c.bimumedia.com
+```
+
+如果使用现成证书包，请将证书和私钥放到：
+
+```text
+/etc/nginx/ssl/info.c.bimumedia.com/fullchain.pem
+/etc/nginx/ssl/info.c.bimumedia.com/privkey.pem
+```
+
+### 7. 验证
+
+```bash
+source /root/.nvm/nvm.sh
+node -v
+npm -v
+curl -I http://info.c.bimumedia.com
+curl -k https://info.c.bimumedia.com/healthz
+sudo systemctl status product-credential-site --no-pager
+sudo nginx -t
+```
+
+## 运维建议
+
+- 后台路径 `/admin`、`/login`、`/logout` 建议在 Nginx 做固定办公 IP 白名单
+- 备份范围至少包括 `products.json`、`images/`、`certificates/`
+- 日志优先看 `journalctl -u product-credential-site -n 100`
+- 未来同机新项目继续走 `Nginx 统一 80/443 + 每项目一个 localhost 端口` 模式
 
 ## 待确认事项（上线前需解决）
 

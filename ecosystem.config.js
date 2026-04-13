@@ -9,7 +9,9 @@ module.exports = {
       max_memory_restart: '256M',
       env: {
         NODE_ENV: 'production',
-        PORT: 55789
+        PORT: 18081,
+        COOKIE_SECURE: 'true',
+        APP_STORAGE_ROOT: '/srv/data/info.c.bimumedia.com'
       }
     }
   ]

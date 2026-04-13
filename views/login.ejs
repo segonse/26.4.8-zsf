@@ -8,14 +8,9 @@
 </head>
 <body class="bg-gray-50 min-h-screen flex items-center justify-center p-4">
   <div class="w-full max-w-sm bg-white rounded-2xl shadow-sm p-6 space-y-5">
-    <div class="flex items-center justify-end gap-2">
-      <button onclick="switchLang('zh')" id="btn-zh" type="button" class="text-xs px-2 py-0.5 rounded-full border border-gray-300 text-gray-500 hover:bg-gray-50 transition-colors">中文</button>
-      <button onclick="switchLang('en')" id="btn-en" type="button" class="text-xs px-2 py-0.5 rounded-full border border-gray-300 text-gray-500 hover:bg-gray-50 transition-colors">EN</button>
-    </div>
-
     <div class="text-center space-y-1">
-      <h1 id="page-title" class="text-lg font-bold text-gray-800">Admin Login</h1>
-      <p id="page-subtitle" class="text-sm text-gray-400">Sign in to access product management</p>
+      <h1 class="text-lg font-bold text-gray-800">Admin Login</h1>
+      <p class="text-sm text-gray-400">Sign in to access product management</p>
     </div>
 
     <% if (error) { %>
@@ -24,68 +19,22 @@
 
     <form method="POST" action="/login" class="space-y-4">
       <div>
-        <label id="username-label" class="block text-xs text-gray-500 mb-1" for="username">Username</label>
+        <label class="block text-xs text-gray-500 mb-1" for="username">Username</label>
         <input id="username" name="username" type="text" required value="<%= lastUsername || '' %>"
                class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300">
       </div>
 
       <div>
-        <label id="password-label" class="block text-xs text-gray-500 mb-1" for="password">Password</label>
+        <label class="block text-xs text-gray-500 mb-1" for="password">Password</label>
         <input id="password" name="password" type="password" required
                class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300">
       </div>
 
-      <button id="submit-button" type="submit"
+      <button type="submit"
               class="w-full bg-blue-500 text-white text-sm font-medium rounded-lg py-2.5 hover:bg-blue-600 transition-colors">
         Sign In
       </button>
     </form>
   </div>
-
-  <script>
-    const i18n = {
-      zh: {
-        title: '后台登录',
-        subtitle: '登录后进入产品管理后台',
-        username: '用户名',
-        password: '密码',
-        submit: '登录'
-      },
-      en: {
-        title: 'Admin Login',
-        subtitle: 'Sign in to access product management',
-        username: 'Username',
-        password: 'Password',
-        submit: 'Sign In'
-      }
-    };
-
-    function switchLang(lang) {
-      localStorage.setItem('lang', lang);
-      document.documentElement.lang = lang === 'zh' ? 'zh-CN' : 'en';
-      document.title = i18n[lang].title;
-      document.getElementById('page-title').textContent = i18n[lang].title;
-      document.getElementById('page-subtitle').textContent = i18n[lang].subtitle;
-      document.getElementById('username-label').textContent = i18n[lang].username;
-      document.getElementById('password-label').textContent = i18n[lang].password;
-      document.getElementById('submit-button').textContent = i18n[lang].submit;
-
-      const isZh = lang === 'zh';
-      const btnZh = document.getElementById('btn-zh');
-      const btnEn = document.getElementById('btn-en');
-      btnZh.classList.toggle('font-semibold', isZh);
-      btnZh.classList.toggle('border-blue-400', isZh);
-      btnZh.classList.toggle('text-blue-500', isZh);
-      btnEn.classList.toggle('font-semibold', !isZh);
-      btnEn.classList.toggle('border-blue-400', !isZh);
-      btnEn.classList.toggle('text-blue-500', !isZh);
-    }
-
-    (function () {
-      const urlLang = new URLSearchParams(location.search).get('lang');
-      const savedLang = localStorage.getItem('lang');
-      switchLang(urlLang || savedLang || 'en');
-    })();
-  </script>
 </body>
 </html>

@@ -1,4 +1,5 @@
 const express = require('express');
+const fs = require('fs');
 const rateLimit = require('express-rate-limit');
 const session = require('express-session');
 const FileStore = require('session-file-store')(session);
@@ -7,9 +8,11 @@ const {
   APP_ROOT,
   IMAGES_DIR,
   CERTIFICATES_DIR,
+  PRODUCTS_FILE,
   SESSIONS_DIR,
   ensureRuntimeDirectories
 } = require('./lib/runtime-paths');
+const { normalizeProductsData } = require('./lib/product-schema');
 
 ensureRuntimeDirectories();
 
@@ -116,11 +119,42 @@ app.post('/logout', (req, res) => {
 // 后台路由（/admin/*）
 app.use('/admin', requireAuth, require('./routes/admin'));
 
+function getDefaultProductPath() {
+  if (process.env.DEFAULT_PRODUCT_MODEL) {
+    return `/${process.env.DEFAULT_PRODUCT_MODEL}`;
+  }
+
+  try {
+    if (!fs.existsSync(PRODUCTS_FILE)) return null;
+    const { products } = normalizeProductsData(JSON.parse(fs.readFileSync(PRODUCTS_FILE, 'utf8')));
+    if (products[0] && products[0].model) {
+      return `/${products[0].model}`;
+    }
+  } catch (error) {
+    console.error('[product] Failed to resolve default product path:', error.message);
+  }
+
+  return null;
+}
+
 // 首页
 app.get('/healthz', (req, res) => res.status(200).json({ ok: true }));
 
-app.get('/', (req, res) => res.sendFile(path.join(APP_ROOT, 'index.html')));
-app.get('/index.html', (req, res) => res.sendFile(path.join(APP_ROOT, 'index.html')));
+app.get('/', (req, res) => {
+  const defaultProductPath = getDefaultProductPath();
+  if (defaultProductPath) {
+    return res.redirect(302, defaultProductPath);
+  }
+  return res.sendFile(path.join(APP_ROOT, 'index.html'));
+});
+
+app.get('/index.html', (req, res) => {
+  const defaultProductPath = getDefaultProductPath();
+  if (defaultProductPath) {
+    return res.redirect(302, defaultProductPath);
+  }
+  return res.sendFile(path.join(APP_ROOT, 'index.html'));
+});
 
 // A档静态版（保留向后兼容）
 app.get('/FC789-1-basic.html', (req, res) =>
@@ -134,7 +168,7 @@ app.use('/', require('./routes/product'));
 
 // 404
 app.use((req, res) => {
-  res.status(404).sendFile(path.join(APP_ROOT, 'index.html'));
+  res.status(404).type('text/plain').send('Not Found');
 });
 
 app.listen(PORT, () => {

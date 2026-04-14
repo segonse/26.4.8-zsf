@@ -1,6 +1,5 @@
 const express = require('express');
 const fs = require('fs');
-const { serializeForScript } = require('../lib/safe-json');
 const { PRODUCTS_FILE } = require('../lib/runtime-paths');
 const { normalizeProductsData } = require('../lib/product-schema');
 const router = express.Router();
@@ -26,10 +25,7 @@ router.get('/:model', (req, res, next) => {
   const product = products.find(p => p.model === model);
   if (!product) return next();
 
-  res.render('product', {
-    product,
-    productJson: serializeForScript(product)
-  });
+  res.render('product', { product });
 });
 
 module.exports = router;

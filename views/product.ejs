@@ -3,9 +3,7 @@
     'FC789-1': {
       headerTitle: '产品背书资料',
       name: '毛发修剪器',
-      subtitle: '型号：FC789-1 · 温州鸿业健身器材有限公司',
-      company: '温州鸿业健身器材有限公司',
-      address: '325000 浙江省温州市平阳县万全镇张阁村254号',
+      subtitle: '型号：FC789-1',
       imagePending: '产品图片待上传',
       params: {
         title: '核心参数',
@@ -16,13 +14,12 @@
         bladeValue: '3铬13 不锈铁',
         port: '充电接口',
         charging: '充电时间',
-        chargingValue: '6~8个小时',
+        chargingValue: '5小时',
+        usage: '使用时间',
+        usageValue: '6~8小时',
         productionDate: '生产日期',
         productionDateValue: '见包装喷码',
         weight: '产品重量',
-        dimensions: '产品尺寸',
-        dimensionsUnitPending: '单位待确认',
-        packageSize: '包装尺寸',
         cartonQty: '装箱数量',
         cartonQtyValue: '80 台/箱',
         cartonSize: '装箱尺寸'
@@ -35,10 +32,6 @@
         pubNo: '授权公告号',
         certNo: '专利证书号',
         certNoValue: '第 9621776 号',
-        owner: '专利权人',
-        ownerValue: '温州鸿业健身器材有限公司',
-        designer: '设计人',
-        designerValue: '蔡盈盈',
         applyDate: '申请日',
         publicationDate: '授权公告日',
         issuer: '发证机构',
@@ -60,8 +53,6 @@
     headerTitle: '产品背书资料',
     name: product.nameEn || '产品',
     subtitle: `型号：${product.model}`,
-    company: '',
-    address: '',
     imagePending: '产品图片待上传',
     params: {
       title: '核心参数',
@@ -73,12 +64,11 @@
       port: '充电接口',
       charging: '充电时间',
       chargingValue: product.params.chargingTime || '待补充',
+      usage: '使用时间',
+      usageValue: product.params.usageTime || '待补充',
       productionDate: '生产日期',
       productionDateValue: product.params.productionDate || '待补充',
       weight: '产品重量',
-      dimensions: '产品尺寸',
-      dimensionsUnitPending: '单位待确认',
-      packageSize: '包装尺寸',
       cartonQty: '装箱数量',
       cartonQtyValue: product.pkg.qtyEn || '—',
       cartonSize: '装箱尺寸'
@@ -91,10 +81,6 @@
       pubNo: '授权公告号',
       certNo: '专利证书号',
       certNoValue: product.patent.certNoEn || '—',
-      owner: '专利权人',
-      ownerValue: product.patent.ownerEn || '—',
-      designer: '设计人',
-      designerValue: product.patent.designerEn || '—',
       applyDate: '申请日',
       publicationDate: '授权公告日',
       issuer: '发证机构',
@@ -111,9 +97,7 @@
   const en = {
     headerTitle: 'Product Credentials',
     name: product.nameEn || 'Product',
-    subtitle: `Model: ${product.model} · ${product.companyEn || 'Company'}`,
-    company: product.companyEn || 'Company',
-    address: product.addressEn || '',
+    subtitle: `Model: ${product.model}`,
     imagePending: 'Product image coming soon',
     params: {
       title: 'Key Specifications',
@@ -125,12 +109,11 @@
       port: 'Charging Port',
       charging: 'Charging Time',
       chargingValue: product.params.chargingTime || 'TBD',
+      usage: 'Usage Time',
+      usageValue: product.params.usageTime || 'TBD',
       productionDate: 'Production Date',
       productionDateValue: product.params.productionDate || 'Pending',
       weight: 'Weight',
-      dimensions: 'Dimensions',
-      dimensionsUnitPending: 'unit pending',
-      packageSize: 'Package Size',
       cartonQty: 'Carton Qty',
       cartonQtyValue: product.pkg.qtyEn || '—',
       cartonSize: 'Carton Size'
@@ -143,10 +126,6 @@
       pubNo: 'Publication No.',
       certNo: 'Certificate No.',
       certNoValue: product.patent.certNoEn || '—',
-      owner: 'Patentee',
-      ownerValue: product.patent.ownerEn || (product.companyEn || '—'),
-      designer: 'Designer',
-      designerValue: product.patent.designerEn || '—',
       applyDate: 'Application Date',
       publicationDate: 'Publication Date',
       issuer: 'Issuing Authority',
@@ -173,7 +152,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title><%= zh.name %> - <%= zh.headerTitle %></title>
-  <meta name="description" content="<%= zh.company %> <%= zh.name %>产品背书资料，包含专利证书、核心参数等信息。">
+  <meta name="description" content="<%= zh.name %>产品背书资料，包含专利证书、核心参数等信息。">
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="/css/style.css">
 </head>
@@ -183,8 +162,8 @@
     <div class="max-w-lg mx-auto px-4 py-3 flex items-center justify-between">
       <h1 id="header-title" class="text-sm font-semibold text-gray-800"><%= zh.headerTitle %></h1>
       <div class="flex items-center gap-2">
-        <button onclick="switchLang('zh')" id="btn-zh" class="text-xs px-2 py-0.5 rounded-full border border-gray-300 text-gray-500 hover:bg-gray-50 transition-colors">中文</button>
-        <button onclick="switchLang('en')" id="btn-en" class="text-xs px-2 py-0.5 rounded-full border border-gray-300 text-gray-500 hover:bg-gray-50 transition-colors">EN</button>
+        <button onclick="switchLang('zh')" id="btn-zh" type="button" class="text-xs px-2 py-0.5 rounded-full border border-gray-300 text-gray-500 hover:bg-gray-50 transition-colors">中文</button>
+        <button onclick="switchLang('en')" id="btn-en" type="button" class="text-xs px-2 py-0.5 rounded-full border border-gray-300 text-gray-500 hover:bg-gray-50 transition-colors">EN</button>
         <span class="text-xs text-gray-400 ml-1"><%= product.model %></span>
       </div>
     </div>
@@ -244,6 +223,10 @@
           <p id="value-charging" class="text-sm font-semibold mt-1"><%= zh.params.chargingValue %></p>
         </div>
         <div class="bg-gray-50 rounded-xl p-3">
+          <p id="label-usage" class="text-xs text-gray-400"><%= zh.params.usage %></p>
+          <p id="value-usage" class="text-sm font-semibold mt-1"><%= zh.params.usageValue %></p>
+        </div>
+        <div class="bg-gray-50 rounded-xl p-3">
           <p id="label-production-date" class="text-xs text-gray-400"><%= zh.params.productionDate %></p>
           <p id="value-production-date" class="text-sm font-semibold mt-1"><%= zh.params.productionDateValue %></p>
         </div>
@@ -251,23 +234,8 @@
           <p id="label-weight" class="text-xs text-gray-400"><%= zh.params.weight %></p>
           <p class="text-sm font-semibold mt-1"><%= product.params.weight || '—' %></p>
         </div>
-        <div class="bg-gray-50 rounded-xl p-3">
-          <p id="label-dimensions" class="text-xs text-gray-400"><%= zh.params.dimensions %></p>
-          <p class="text-sm font-semibold mt-1">
-            <%= product.params.dimensions || '—' %>
-            <% if (product.params.dimensionsUnit) { %>
-            <span class="text-xs font-normal text-gray-400"><%= product.params.dimensionsUnit %></span>
-            <% } else if (product.params.dimensions) { %>
-            <span id="dimensions-unit-pending" class="text-xs font-normal text-orange-400"><%= zh.params.dimensionsUnitPending %></span>
-            <% } %>
-          </p>
-        </div>
       </div>
       <div class="mt-4 pt-4 border-t space-y-2">
-        <div class="flex justify-between text-sm gap-4">
-          <span id="label-package-size" class="text-gray-400"><%= zh.params.packageSize %></span>
-          <span class="font-medium text-gray-800 text-right"><%= product.pkg.size || '—' %></span>
-        </div>
         <div class="flex justify-between text-sm gap-4">
           <span id="label-carton-qty" class="text-gray-400"><%= zh.params.cartonQty %></span>
           <span id="value-carton-qty" class="font-medium text-gray-800 text-right"><%= zh.params.cartonQtyValue %></span>
@@ -300,14 +268,6 @@
         <div class="flex justify-between gap-4">
           <dt id="label-cert-no" class="text-gray-400"><%= zh.patent.certNo %></dt>
           <dd id="value-cert-no" class="font-medium text-gray-800 text-right"><%= zh.patent.certNoValue %></dd>
-        </div>
-        <div class="flex justify-between gap-4">
-          <dt id="label-owner" class="text-gray-400"><%= zh.patent.owner %></dt>
-          <dd id="value-owner" class="font-medium text-gray-800 text-right"><%= zh.patent.ownerValue %></dd>
-        </div>
-        <div class="flex justify-between gap-4">
-          <dt id="label-designer" class="text-gray-400"><%= zh.patent.designer %></dt>
-          <dd id="value-designer" class="font-medium text-gray-800 text-right"><%= zh.patent.designerValue %></dd>
         </div>
         <div class="flex justify-between gap-4">
           <dt id="label-apply-date" class="text-gray-400"><%= zh.patent.applyDate %></dt>
@@ -361,13 +321,6 @@
     </section>
     <% } %>
 
-    <footer class="text-center text-xs text-gray-300 pt-2 pb-8 space-y-1">
-      <p id="footer-company"><%= zh.company %></p>
-      <% if (zh.address || en.address) { %>
-      <p id="footer-address"><%= zh.address %></p>
-      <% } %>
-    </footer>
-
   </main>
 
   <script>
@@ -377,9 +330,14 @@
     };
 
     function switchLang(lang) {
-      const copy = I18N[lang];
-      localStorage.setItem('lang', lang);
-      document.documentElement.lang = lang === 'zh' ? 'zh-CN' : 'en';
+      const normalizedLang = lang === 'en' ? 'en' : 'zh';
+      const copy = I18N[normalizedLang];
+      const url = new URL(window.location.href);
+      url.searchParams.set('lang', normalizedLang);
+      if (url.toString() !== window.location.href) {
+        window.history.replaceState({}, '', url);
+      }
+      document.documentElement.lang = normalizedLang === 'zh' ? 'zh-CN' : 'en';
       document.title = `${copy.name} - ${copy.headerTitle}`;
 
       document.getElementById('header-title').textContent = copy.headerTitle;
@@ -397,19 +355,14 @@
       document.getElementById('label-port').textContent = copy.params.port;
       document.getElementById('label-charging').textContent = copy.params.charging;
       document.getElementById('value-charging').textContent = copy.params.chargingValue;
+      document.getElementById('label-usage').textContent = copy.params.usage;
+      document.getElementById('value-usage').textContent = copy.params.usageValue;
       document.getElementById('label-production-date').textContent = copy.params.productionDate;
       document.getElementById('value-production-date').textContent = copy.params.productionDateValue;
       document.getElementById('label-weight').textContent = copy.params.weight;
-      document.getElementById('label-dimensions').textContent = copy.params.dimensions;
-      document.getElementById('label-package-size').textContent = copy.params.packageSize;
       document.getElementById('label-carton-qty').textContent = copy.params.cartonQty;
       document.getElementById('value-carton-qty').textContent = copy.params.cartonQtyValue;
       document.getElementById('label-carton-size').textContent = copy.params.cartonSize;
-
-      const dimensionsUnitPending = document.getElementById('dimensions-unit-pending');
-      if (dimensionsUnitPending) {
-        dimensionsUnitPending.textContent = copy.params.dimensionsUnitPending;
-      }
 
       document.getElementById('patent-title').textContent = copy.patent.title;
       document.getElementById('label-patent-no').textContent = copy.patent.no;
@@ -418,10 +371,6 @@
       document.getElementById('label-pub-no').textContent = copy.patent.pubNo;
       document.getElementById('label-cert-no').textContent = copy.patent.certNo;
       document.getElementById('value-cert-no').textContent = copy.patent.certNoValue;
-      document.getElementById('label-owner').textContent = copy.patent.owner;
-      document.getElementById('value-owner').textContent = copy.patent.ownerValue;
-      document.getElementById('label-designer').textContent = copy.patent.designer;
-      document.getElementById('value-designer').textContent = copy.patent.designerValue;
       document.getElementById('label-apply-date').textContent = copy.patent.applyDate;
       document.getElementById('label-publication-date').textContent = copy.patent.publicationDate;
       document.getElementById('label-issuer').textContent = copy.patent.issuer;
@@ -441,16 +390,9 @@
       document.querySelectorAll('.attachment-view').forEach((el) => {
         el.textContent = copy.attachments.view;
       });
-
-      document.getElementById('footer-company').textContent = copy.company;
-      const footerAddress = document.getElementById('footer-address');
-      if (footerAddress) {
-        footerAddress.textContent = copy.address;
-      }
-
       const btnZh = document.getElementById('btn-zh');
       const btnEn = document.getElementById('btn-en');
-      const isZh = lang === 'zh';
+      const isZh = normalizedLang === 'zh';
       btnZh.classList.toggle('font-semibold', isZh);
       btnZh.classList.toggle('border-blue-400', isZh);
       btnZh.classList.toggle('text-blue-500', isZh);
@@ -461,8 +403,7 @@
 
     (function () {
       const urlLang = new URLSearchParams(location.search).get('lang');
-      const savedLang = localStorage.getItem('lang');
-      switchLang(urlLang || savedLang || 'zh');
+      switchLang(urlLang === 'zh' ? 'zh' : 'en');
     })();
   </script>
 </body>

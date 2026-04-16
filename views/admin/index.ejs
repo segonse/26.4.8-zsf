@@ -71,14 +71,25 @@
           </div>
         </div>
 
-        <div class="flex items-center gap-2">
-          <span class="text-xs text-gray-400 w-16 shrink-0">URL</span>
-          <code class="flex-1 text-xs bg-gray-50 border rounded px-2 py-1 text-gray-700 truncate url-display"
-                data-path="/<%= p.model %>"></code>
-          <button onclick="copyUrl(this)"
-                  class="copy-button text-xs bg-gray-100 hover:bg-gray-200 text-gray-600 px-2 py-1 rounded transition-colors shrink-0">
-            Copy
-          </button>
+        <div class="space-y-2">
+          <div class="flex items-center gap-2">
+            <span class="text-xs text-gray-400 w-16 shrink-0">URL (ZH)</span>
+            <code class="flex-1 text-xs bg-gray-50 border rounded px-2 py-1 text-gray-700 truncate url-display"
+                  data-path="/<%= p.model %>?lang=zh"></code>
+            <button onclick="copyUrl(this)"
+                    class="copy-button text-xs bg-gray-100 hover:bg-gray-200 text-gray-600 px-2 py-1 rounded transition-colors shrink-0">
+              Copy
+            </button>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="text-xs text-gray-400 w-16 shrink-0">URL (EN)</span>
+            <code class="flex-1 text-xs bg-gray-50 border rounded px-2 py-1 text-gray-700 truncate url-display"
+                  data-path="/<%= p.model %>?lang=en"></code>
+            <button onclick="copyUrl(this)"
+                    class="copy-button text-xs bg-gray-100 hover:bg-gray-200 text-gray-600 px-2 py-1 rounded transition-colors shrink-0">
+              Copy
+            </button>
+          </div>
         </div>
       </div>
       <% }); %>

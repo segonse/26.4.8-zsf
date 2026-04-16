@@ -13,6 +13,7 @@ APP_GROUP="${APP_GROUP:-www-data}"
 PORT="${PORT:-18081}"
 NODE_BIN="${NODE_BIN:-}"
 NPM_BIN="${NPM_BIN:-}"
+SYNC_PRODUCTS_DATA="${SYNC_PRODUCTS_DATA:-false}"
 
 echo "==============================="
 echo "  产品背书页面部署脚本"
@@ -20,6 +21,7 @@ echo "==============================="
 echo "APP_ROOT=$APP_ROOT"
 echo "APP_STORAGE_ROOT=$APP_STORAGE_ROOT"
 echo "SERVICE_NAME=$SERVICE_NAME"
+echo "SYNC_PRODUCTS_DATA=$SYNC_PRODUCTS_DATA"
 
 if [ -z "$NODE_BIN" ] && command -v node >/dev/null 2>&1; then
     NODE_BIN="$(command -v node)"
@@ -60,7 +62,9 @@ fi
 if [ -d "$APP_ROOT/certificates" ]; then
     cp -a "$APP_ROOT/certificates/." "$APP_STORAGE_ROOT/certificates/"
 fi
-if [ ! -f "$APP_STORAGE_ROOT/data/products.json" ] && [ -f "$APP_ROOT/data/products.json" ]; then
+if [ "$SYNC_PRODUCTS_DATA" = "true" ] && [ -f "$APP_ROOT/data/products.json" ]; then
+    cp -a "$APP_ROOT/data/products.json" "$APP_STORAGE_ROOT/data/products.json"
+elif [ ! -f "$APP_STORAGE_ROOT/data/products.json" ] && [ -f "$APP_ROOT/data/products.json" ]; then
     cp -a "$APP_ROOT/data/products.json" "$APP_STORAGE_ROOT/data/products.json"
 fi
 

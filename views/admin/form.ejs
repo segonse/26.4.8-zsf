@@ -128,7 +128,13 @@
             <label class="block text-xs text-gray-500 mb-1">Charging Time</label>
             <input type="text" name="params.chargingTime" value="<%= product ? product.params.chargingTime : '' %>"
                    class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
-                   placeholder="TBD">
+                   placeholder="5 hours">
+          </div>
+          <div>
+            <label class="block text-xs text-gray-500 mb-1">Usage Time</label>
+            <input type="text" name="params.usageTime" value="<%= product ? product.params.usageTime : '' %>"
+                   class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+                   placeholder="6-8 hours">
           </div>
           <div>
             <label class="block text-xs text-gray-500 mb-1">Production Date</label>
@@ -141,21 +147,6 @@
             <input type="text" name="params.weight" value="<%= product ? product.params.weight : '' %>"
                    class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
                    placeholder="141.2 g">
-          </div>
-        </div>
-
-        <div class="grid grid-cols-3 gap-3">
-          <div>
-            <label class="block text-xs text-gray-500 mb-1">Dimensions</label>
-            <input type="text" name="params.dimensions" value="<%= product ? product.params.dimensions : '' %>"
-                   class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
-                   placeholder="4.5×3×15">
-          </div>
-          <div>
-            <label class="block text-xs text-gray-500 mb-1">Unit</label>
-            <input type="text" name="params.dimensionsUnit" value="<%= product ? product.params.dimensionsUnit : '' %>"
-                   class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
-                   placeholder="cm or mm">
           </div>
         </div>
       </section>

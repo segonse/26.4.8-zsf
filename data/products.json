@@ -12,11 +12,10 @@
         "speed": "6000 RPM",
         "bladeEn": "3Cr13 Stainless Steel",
         "port": "Type-C",
-        "chargingTime": "6-8 hours",
+        "chargingTime": "5 hours",
+        "usageTime": "6-8 hours",
         "productionDate": "See package inkjet code",
-        "weight": "141.2 g",
-        "dimensions": "4.5×3×15",
-        "dimensionsUnit": ""
+        "weight": "141.2 g"
       },
       "pkg": {
         "size": "12.8 × 52.5 × 20 cm",

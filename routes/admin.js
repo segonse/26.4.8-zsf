@@ -180,10 +180,9 @@ function buildProduct(body, files, existing) {
       bladeEn:        readBodyField(body, 'params.bladeEn'),
       port:           readBodyField(body, 'params.port'),
       chargingTime:   readBodyField(body, 'params.chargingTime'),
+      usageTime:      readBodyField(body, 'params.usageTime'),
       productionDate: readBodyField(body, 'params.productionDate'),
-      weight:         readBodyField(body, 'params.weight'),
-      dimensions:     readBodyField(body, 'params.dimensions'),
-      dimensionsUnit: readBodyField(body, 'params.dimensionsUnit')
+      weight:         readBodyField(body, 'params.weight')
     },
     pkg: {
       size:    readBodyField(body, 'pkg.size'),

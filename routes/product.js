@@ -14,13 +14,9 @@ function loadProducts() {
 router.get('/:model', (req, res, next) => {
   const raw = req.params.model;
   const model = raw.endsWith('.html') ? raw.slice(0, -5) : raw;
-  const lang = typeof req.query.lang === 'string' ? req.query.lang.toLowerCase() : '';
-
-  if (lang !== 'zh' && lang !== 'en') {
-    const params = new URLSearchParams(req.query);
-    params.set('lang', 'en');
-    return res.redirect(302, `/${raw}?${params.toString()}`);
-  }
+  const lang = typeof req.query.lang === 'string' && req.query.lang.toLowerCase() === 'en'
+    ? 'en'
+    : 'zh';
 
   let products;
   try {
@@ -32,7 +28,7 @@ router.get('/:model', (req, res, next) => {
   const product = products.find(p => p.model === model);
   if (!product) return next();
 
-  res.render('product', { product });
+  res.render('product', { product, lang });
 });
 
 module.exports = router;

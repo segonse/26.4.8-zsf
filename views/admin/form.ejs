@@ -1,6 +1,3 @@
-<%
-  const certs = (product && product.certificates) ? product.certificates : [];
-%>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -109,6 +106,12 @@
         </div>
 
         <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs text-gray-500 mb-1">Material (EN)</label>
+            <input type="text" name="params.materialEn" value="<%= product ? product.params.materialEn : '' %>"
+                   class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+                   placeholder="Aluminum Alloy">
+          </div>
           <div>
             <label class="block text-xs text-gray-500 mb-1">Blade Material (EN)</label>
             <input type="text" name="params.bladeEn" value="<%= product ? product.params.bladeEn : '' %>"
@@ -251,59 +254,6 @@
         </div>
       </section>
 
-      <section class="bg-white rounded-2xl shadow-sm p-5 space-y-4">
-        <h2 class="text-sm font-semibold text-gray-700 border-b pb-2">Certificate Attachments</h2>
-        <p class="text-xs text-gray-400">One certificate per row. Fill the English name and upload the PDF and thumbnail.</p>
-
-        <div id="cert-list" class="space-y-4">
-          <% certs.forEach(function(cert, i) { %>
-          <div class="cert-item border rounded-xl p-4 space-y-3 relative">
-            <button type="button" onclick="removeCert(this)"
-                    class="absolute top-3 right-3 text-xs text-red-400 hover:text-red-600">✕</button>
-            <input type="hidden" name="certs[<%= i %>][file]" value="<%= cert.file %>">
-            <input type="hidden" name="certs[<%= i %>][thumb]" value="<%= cert.thumb %>">
-
-            <div class="grid grid-cols-2 gap-3">
-              <div>
-                <label class="block text-xs text-gray-500 mb-1">Certificate Name (EN)</label>
-                <input type="text" name="certs[<%= i %>][nameEn]"
-                       value="<%= cert.nameEn %>"
-                       class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300">
-              </div>
-              <div>
-                <label class="block text-xs text-gray-500 mb-1">Date</label>
-                <input type="text" name="certs[<%= i %>][date]"
-                       value="<%= cert.date %>"
-                       class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
-                       placeholder="2025-11-14">
-              </div>
-            </div>
-            <div class="grid grid-cols-2 gap-3">
-              <div>
-                <label class="block text-xs text-gray-500 mb-1">PDF File</label>
-                <input type="file" name="certFiles[<%= i %>]" accept=".pdf"
-                       class="w-full text-xs text-gray-500 file:mr-1 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:bg-blue-50 file:text-blue-600">
-                <% if (cert.file) { %><p class="current-file text-xs text-gray-400 mt-0.5 truncate">Current: <%= cert.file %></p><% } %>
-              </div>
-              <div>
-                <label class="block text-xs text-gray-500 mb-1">Thumbnail</label>
-                <input type="file" name="certThumbs[<%= i %>]" accept="image/*"
-                       class="w-full text-xs text-gray-500 file:mr-1 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:bg-blue-50 file:text-blue-600">
-                <% if (cert.thumb) { %><p class="current-file text-xs text-gray-400 mt-0.5 truncate">Current: <%= cert.thumb %></p><% } %>
-              </div>
-            </div>
-          </div>
-          <% }); %>
-        </div>
-
-        <input type="hidden" id="cert-count" name="certCount" value="<%= certs.length %>">
-
-        <button type="button" onclick="addCert()"
-                class="text-xs border border-dashed border-gray-300 text-gray-500 hover:border-blue-400 hover:text-blue-500 w-full py-2 rounded-xl transition-colors">
-          + Add Certificate
-        </button>
-      </section>
-
       <div class="flex gap-3">
         <button type="submit"
                 class="flex-1 bg-blue-500 text-white text-sm font-medium py-3 rounded-xl hover:bg-blue-600 transition-colors">
@@ -317,67 +267,5 @@
 
     </form>
   </main>
-
-  <script>
-    let certCount = parseInt(document.getElementById('cert-count').value, 10);
-
-    function renderCertItem(i) {
-      return `
-        <button type="button" onclick="removeCert(this)"
-                class="absolute top-3 right-3 text-xs text-red-400 hover:text-red-600">✕</button>
-        <input type="hidden" name="certs[${i}][file]" value="">
-        <input type="hidden" name="certs[${i}][thumb]" value="">
-        <div class="grid grid-cols-2 gap-3">
-          <div>
-            <label class="block text-xs text-gray-500 mb-1">Certificate Name (EN)</label>
-            <input type="text" name="certs[${i}][nameEn]"
-                   class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300">
-          </div>
-          <div>
-            <label class="block text-xs text-gray-500 mb-1">Date</label>
-            <input type="text" name="certs[${i}][date]"
-                   class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
-                   placeholder="2025-11-14">
-          </div>
-        </div>
-        <div class="grid grid-cols-2 gap-3">
-          <div>
-            <label class="block text-xs text-gray-500 mb-1">PDF File</label>
-            <input type="file" name="certFiles[${i}]" accept=".pdf"
-                   class="w-full text-xs text-gray-500 file:mr-1 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:bg-blue-50 file:text-blue-600">
-          </div>
-          <div>
-            <label class="block text-xs text-gray-500 mb-1">Thumbnail</label>
-            <input type="file" name="certThumbs[${i}]" accept="image/*"
-                   class="w-full text-xs text-gray-500 file:mr-1 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:bg-blue-50 file:text-blue-600">
-          </div>
-        </div>
-      `;
-    }
-
-    function addCert() {
-      const div = document.createElement('div');
-      div.className = 'cert-item border rounded-xl p-4 space-y-3 relative';
-      div.innerHTML = renderCertItem(certCount);
-      document.getElementById('cert-list').appendChild(div);
-      certCount += 1;
-      document.getElementById('cert-count').value = certCount;
-    }
-
-    function removeCert(btn) {
-      btn.closest('.cert-item').remove();
-      document.querySelectorAll('#cert-list .cert-item').forEach((item, idx) => {
-        item.querySelectorAll('[name]').forEach((el) => {
-          el.name = el.name
-            .replace(/certs\[\d+\]/, `certs[${idx}]`)
-            .replace(/certFiles\[\d+\]/, `certFiles[${idx}]`)
-            .replace(/certThumbs\[\d+\]/, `certThumbs[${idx}]`);
-        });
-      });
-      certCount = document.querySelectorAll('#cert-list .cert-item').length;
-      document.getElementById('cert-count').value = certCount;
-    }
-
-  </script>
 </body>
 </html>

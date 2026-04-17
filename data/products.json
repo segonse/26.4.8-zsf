@@ -5,17 +5,18 @@
       "nameEn": "Hair Clipper",
       "companyEn": "Wenzhou Hongye Fitness Equipment Co., Ltd.",
       "addressEn": "No.254, Zhangge Village, Wanquan Town, Pingyang County, Wenzhou, Zhejiang, China",
-      "image": "images/product-fc789-1.jpg",
+      "image": "images/ea6556f787698aee2fb07e0d8e6ac26f.png",
       "params": {
         "battery": "1200 mAh",
         "power": "5 W",
         "speed": "6000 RPM",
+        "materialEn": "Aluminum Alloy",
         "bladeEn": "3Cr13 Stainless Steel",
         "port": "Type-C",
         "chargingTime": "5 hours",
         "usageTime": "6-8 hours",
         "productionDate": "See package inkjet code",
-        "weight": "141.2 g"
+        "weight": "174.5g"
       },
       "pkg": {
         "size": "12.8 × 52.5 × 20 cm",

@@ -5,8 +5,7 @@ const multer = require('multer');
 const crypto = require('crypto');
 const {
   PRODUCTS_FILE,
-  IMAGES_DIR,
-  CERTIFICATES_DIR
+  IMAGES_DIR
 } = require('../lib/runtime-paths');
 const { normalizeProductsData } = require('../lib/product-schema');
 const router = express.Router();
@@ -17,33 +16,11 @@ const DATA_FILE_TEMP = `${DATA_FILE}.tmp`;
 const MAX_UPLOAD_SIZE = 10 * 1024 * 1024;
 const IMAGE_MIME_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp']);
 const IMAGE_EXTENSIONS = new Set(['.jpg', '.jpeg', '.png', '.webp']);
-const PDF_MIME_TYPES = new Set(['application/pdf', 'application/octet-stream']);
-
-function isProductImageField(fieldname) {
-  return fieldname === 'productImage';
-}
-
-function isCertFileField(fieldname) {
-  return /^certFiles\[\d+\]$/.test(fieldname);
-}
-
-function isCertThumbField(fieldname) {
-  return /^certThumbs\[\d+\]$/.test(fieldname);
-}
-
-function findUploadedFile(files, fieldname) {
-  if (!Array.isArray(files)) return null;
-  return files.find(file => file.fieldname === fieldname) || null;
-}
 
 // ── 文件上传配置 ──────────────────────────────────────────────
 const storage = multer.diskStorage({
   destination(req, file, cb) {
-    if (isProductImageField(file.fieldname) || isCertThumbField(file.fieldname)) {
-      cb(null, IMAGES_DIR);
-    } else {
-      cb(null, CERTIFICATES_DIR);
-    }
+    cb(null, IMAGES_DIR);
   },
   filename(req, file, cb) {
     const ext = path.extname(file.originalname);
@@ -57,18 +34,11 @@ const upload = multer({
   },
   fileFilter(req, file, cb) {
     const ext = path.extname(file.originalname).toLowerCase();
-    const isImageField = isProductImageField(file.fieldname) || isCertThumbField(file.fieldname);
-    const isPdfField = isCertFileField(file.fieldname);
-
-    if (isImageField && IMAGE_MIME_TYPES.has(file.mimetype) && IMAGE_EXTENSIONS.has(ext)) {
+    if (file.fieldname === 'productImage' && IMAGE_MIME_TYPES.has(file.mimetype) && IMAGE_EXTENSIONS.has(ext)) {
       return cb(null, true);
     }
 
-    if (isPdfField && PDF_MIME_TYPES.has(file.mimetype) && ext === '.pdf') {
-      return cb(null, true);
-    }
-
-    return cb(new Error('Only PDF files and JPG/PNG/WEBP images are allowed'));
+    return cb(new Error('Only JPG/PNG/WEBP product images are allowed'));
   }
 });
 
@@ -102,6 +72,9 @@ function buildUploadErrorMessage(err) {
     if (err.code === 'LIMIT_FILE_SIZE') {
       return 'Each uploaded file must be 10MB or smaller';
     }
+    if (err.code === 'LIMIT_UNEXPECTED_FILE') {
+      return 'Certificate uploads are temporarily disabled';
+    }
     return 'Upload failed';
   }
   return err.message || 'Upload failed';
@@ -111,72 +84,26 @@ function readBodyField(body, key) {
   return body[key] || '';
 }
 
-function readCertField(body, index, key) {
-  const nested = body.certs;
-  if (Array.isArray(nested) && nested[index] && nested[index][key] !== undefined) {
-    return nested[index][key] || '';
-  }
-  if (nested && typeof nested === 'object') {
-    const row = nested[index] || nested[String(index)];
-    if (row && row[key] !== undefined) {
-      return row[key] || '';
-    }
-  }
-  return body[`certs[${index}][${key}]`] || '';
-}
-
 // ── 从 req.body 构建产品对象 ──────────────────────────────────
-function buildProduct(body, files, existing) {
-  const nestedCerts = body.certs;
-  const nestedCertCount = Array.isArray(nestedCerts)
-    ? nestedCerts.length
-    : nestedCerts && typeof nestedCerts === 'object'
-      ? Object.keys(nestedCerts).length
-      : 0;
-  const certCount = Math.max(parseInt(body.certCount || '0', 10), nestedCertCount);
-  const certificates = new Array(certCount);
-  for (let i = 0; i < certCount; i++) {
-    certificates[i] = {
-      nameEn: readCertField(body, i, 'nameEn').trim(),
-      date: readCertField(body, i, 'date').trim(),
-      file: readCertField(body, i, 'file').trim(),
-      thumb: readCertField(body, i, 'thumb').trim()
-    };
-  }
-
-  const uploadedFiles = Array.isArray(files)
-    ? files
-    : files
-      ? Object.values(files).flat()
-      : [];
-
-  const productImageFile = findUploadedFile(uploadedFiles, 'productImage');
-  if (productImageFile) {
-    body.image = 'images/' + productImageFile.filename;
-  }
-
-  for (let i = 0; i < certCount; i++) {
-    const certFile = findUploadedFile(uploadedFiles, `certFiles[${i}]`);
-    if (certFile && certificates[i]) {
-      certificates[i].file = 'certificates/' + certFile.filename;
-    }
-
-    const certThumb = findUploadedFile(uploadedFiles, `certThumbs[${i}]`);
-    if (certThumb && certificates[i]) {
-      certificates[i].thumb = 'images/' + certThumb.filename;
-    }
-  }
+function buildProduct(body, file, existing) {
+  const existingCertificates = existing && Array.isArray(existing.certificates)
+    ? existing.certificates.map((cert) => ({ ...cert }))
+    : [];
+  const nextImage = file
+    ? `images/${file.filename}`
+    : readBodyField(body, 'image') || (existing && existing.image) || '';
 
   return {
     model:      readBodyField(body, 'model') || (existing && existing.model) || '',
     nameEn:     readBodyField(body, 'nameEn'),
     companyEn:  readBodyField(body, 'companyEn'),
     addressEn:  readBodyField(body, 'addressEn'),
-    image:      readBodyField(body, 'image') || (existing && existing.image) || '',
+    image:      nextImage,
     params: {
       battery:        readBodyField(body, 'params.battery'),
       power:          readBodyField(body, 'params.power'),
       speed:          readBodyField(body, 'params.speed'),
+      materialEn:     readBodyField(body, 'params.materialEn'),
       bladeEn:        readBodyField(body, 'params.bladeEn'),
       port:           readBodyField(body, 'params.port'),
       chargingTime:   readBodyField(body, 'params.chargingTime'),
@@ -201,8 +128,7 @@ function buildProduct(body, files, existing) {
       issuerEn:   readBodyField(body, 'patent.issuerEn'),
       evalDate:   readBodyField(body, 'patent.evalDate')
     },
-    certificates: certificates.filter(cert =>
-      cert.nameEn || cert.date || cert.file || cert.thumb)
+    certificates: existingCertificates
   };
 }
 
@@ -233,10 +159,10 @@ router.get('/:model/edit', (req, res) => {
 
 // ── 表单提交路由 ───────────────────────────────────────────────
 
-const uploadFields = upload.any();
+const uploadProductImage = upload.single('productImage');
 
 // POST /admin/products → 新增产品
-router.post('/products', uploadFields, (req, res) => {
+router.post('/products', uploadProductImage, (req, res) => {
   const data = readData();
   const model = (req.body.model || '').trim();
   if (!model) {
@@ -253,18 +179,18 @@ router.post('/products', uploadFields, (req, res) => {
       error: `Product model ${model} already exists`
     });
   }
-  const product = buildProduct(req.body, req.files, null);
+  const product = buildProduct(req.body, req.file, null);
   data.products.push(product);
   writeData(data);
   res.redirect('/admin');
 });
 
 // POST /admin/products/:model/update → 更新产品
-router.post('/products/:model/update', uploadFields, (req, res) => {
+router.post('/products/:model/update', uploadProductImage, (req, res) => {
   const data = readData();
   const idx = data.products.findIndex(p => p.model === req.params.model);
   if (idx === -1) return res.redirect('/admin');
-  const updated = buildProduct(req.body, req.files, data.products[idx]);
+  const updated = buildProduct(req.body, req.file, data.products[idx]);
   updated.model = data.products[idx].model; // model 不可修改
   data.products[idx] = updated;
   writeData(data);
@@ -285,9 +211,9 @@ router.get('/api/products', (req, res) => {
   res.json(readData());
 });
 
-router.post('/api/products', uploadFields, (req, res) => {
+router.post('/api/products', uploadProductImage, (req, res) => {
   const data = readData();
-  const product = buildProduct(req.body, req.files, null);
+  const product = buildProduct(req.body, req.file, null);
   if (data.products.find(p => p.model === product.model)) {
     return res.status(409).json({ error: 'Product model already exists' });
   }
@@ -296,11 +222,11 @@ router.post('/api/products', uploadFields, (req, res) => {
   res.status(201).json(product);
 });
 
-router.put('/api/products/:model', uploadFields, (req, res) => {
+router.put('/api/products/:model', uploadProductImage, (req, res) => {
   const data = readData();
   const idx = data.products.findIndex(p => p.model === req.params.model);
   if (idx === -1) return res.status(404).json({ error: 'Product not found' });
-  const updated = buildProduct(req.body, req.files, data.products[idx]);
+  const updated = buildProduct(req.body, req.file, data.products[idx]);
   updated.model = data.products[idx].model;
   data.products[idx] = updated;
   writeData(data);

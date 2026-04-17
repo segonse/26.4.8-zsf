@@ -121,14 +121,14 @@ app.use('/admin', requireAuth, require('./routes/admin'));
 
 function getDefaultProductPath() {
   if (process.env.DEFAULT_PRODUCT_MODEL) {
-    return `/${process.env.DEFAULT_PRODUCT_MODEL}?lang=en`;
+    return `/${process.env.DEFAULT_PRODUCT_MODEL}`;
   }
 
   try {
     if (!fs.existsSync(PRODUCTS_FILE)) return null;
     const { products } = normalizeProductsData(JSON.parse(fs.readFileSync(PRODUCTS_FILE, 'utf8')));
     if (products[0] && products[0].model) {
-      return `/${products[0].model}?lang=en`;
+      return `/${products[0].model}`;
     }
   } catch (error) {
     console.error('[product] Failed to resolve default product path:', error.message);

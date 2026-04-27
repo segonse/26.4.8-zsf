@@ -1,7 +1,7 @@
 {
   "products": [
     {
-      "model": "FC789-1",
+      "model": "FC789-A1",
       "nameEn": "Hair Clipper",
       "companyEn": "Wenzhou Hongye Fitness Equipment Co., Ltd.",
       "addressEn": "No.254, Zhangge Village, Wanquan Town, Pingyang County, Wenzhou, Zhejiang, China",
@@ -10,7 +10,57 @@
         "battery": "1200 mAh",
         "power": "5 W",
         "speed": "6000 RPM",
-        "materialEn": "Aluminum Alloy",
+        "materialEn": "Zinc Alloy",
+        "bladeEn": "3Cr13 Stainless Steel",
+        "port": "Type-C",
+        "chargingTime": "5 hours",
+        "usageTime": "6-8 hours",
+        "productionDate": "See package inkjet code",
+        "weight": "174.5g"
+      },
+      "pkg": {
+        "size": "12.8 × 52.5 × 20 cm",
+        "qtyEn": "80 pcs/ctn",
+        "carton": "55 × 41.5 × 53.5 cm"
+      },
+      "patent": {
+        "no": "ZL 2025 3 0594617.X",
+        "pubNo": "CN 309606064 S",
+        "certNoEn": "No. 9621776",
+        "nameEn": "Hair Clipper (Industrial Design)",
+        "ownerEn": "Wenzhou Hongye Fitness Equipment Co., Ltd.",
+        "designerEn": "Cai Yingying",
+        "applyDate": "2025-10-10",
+        "pubDate": "2025-11-14",
+        "issuerEn": "China National Intellectual Property Administration",
+        "evalDate": "2025-12-19"
+      },
+      "certificates": [
+        {
+          "nameEn": "Design Patent Certificate",
+          "date": "2025-11-14",
+          "file": "certificates/design-patent.pdf",
+          "thumb": "images/cert-thumb-patent.jpg"
+        },
+        {
+          "nameEn": "Design Patent Evaluation Report",
+          "date": "2025-12-19",
+          "file": "certificates/patent-evaluation.pdf",
+          "thumb": "images/cert-thumb-evaluation.jpg"
+        }
+      ]
+    },
+    {
+      "model": "FC789-1",
+      "nameEn": "Hair Clipper",
+      "companyEn": "Wenzhou Hongye Fitness Equipment Co., Ltd.",
+      "addressEn": "No.254, Zhangge Village, Wanquan Town, Pingyang County, Wenzhou, Zhejiang, China",
+      "image": "images/0.jpg",
+      "params": {
+        "battery": "1200 mAh",
+        "power": "5 W",
+        "speed": "6000 RPM",
+        "materialEn": "Plastic",
         "bladeEn": "3Cr13 Stainless Steel",
         "port": "Type-C",
         "chargingTime": "5 hours",

@@ -43,7 +43,7 @@
             <input type="text" name="model" required
                    value="<%= product ? product.model : '' %>"
                    <%= product ? 'readonly class="w-full border border-gray-200 bg-gray-50 rounded-lg px-3 py-2 text-sm text-gray-500"' : 'class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"' %>
-                   placeholder="e.g. FC789-1">
+                   placeholder="e.g. FC789-A1">
           </div>
           <div>
             <label class="block text-xs text-gray-500 mb-1">Product Image</label>
@@ -110,7 +110,7 @@
             <label class="block text-xs text-gray-500 mb-1">Material (EN)</label>
             <input type="text" name="params.materialEn" value="<%= product ? product.params.materialEn : '' %>"
                    class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
-                   placeholder="Aluminum Alloy">
+                   placeholder="Zinc Alloy">
           </div>
           <div>
             <label class="block text-xs text-gray-500 mb-1">Blade Material (EN)</label>
